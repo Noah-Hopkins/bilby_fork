@@ -924,8 +924,12 @@ def lalsim_SimNeutronStarLoveNumberK2(mass_in_SI, fam):
     return SimNeutronStarLoveNumberK2(mass_in_SI, fam)
 
 
+<<<<<<< HEAD
 @xp_wrap
 def spline_angle_xform(delta_psi, *, xp=None):
+=======
+def spline_angle_xform(delta_psi):
+>>>>>>> ed81b377 (First attempt at making the conversion from central pressures to source masses to mass1 and mass2.)
     """
     Returns the angle in degrees corresponding to the spline
     calibration parameters delta_psi.
