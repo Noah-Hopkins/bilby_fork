@@ -25,7 +25,9 @@ from .utils import (lalsim_SimNeutronStarEOS4ParamSDGammaCheck,
                     lalsim_SimNeutronStarFamMinimumMass,
                     lalsim_SimNeutronStarMaximumMass,
                     lalsim_SimNeutronStarRadius,
-                    lalsim_SimNeutronStarLoveNumberK2)
+                    lalsim_SimNeutronStarLoveNumberK2,
+                    lalsim_SimNeutronStarCentralPressure, # Maybe this one is not needed. 
+                    lalsim_SimNeutronStarMass)
 
 from ..core.likelihood import MarginalizedLikelihoodReconstructionError
 from ..core.utils import logger, solar_mass, gravitational_constant, speed_of_light, command_line_args, safe_file_dump
@@ -283,6 +285,26 @@ def convert_to_lal_binary_black_hole_parameters(parameters):
     return converted_parameters, added_keys
 
 
+def generate_component_masses_from_central_pressures(converted_parameters): # I might need additional inputs, such as added_keys. 
+    if 'central_pressure_1' in converted_parameters.keys(): # There should be an analogous if statement for pc2. 
+        mass_1_source = lalsim_SimNeutronStarMassconverted parameters['(central_pressure_1'], family,) # At this point, I think the source frame mass_1 has been found. 
+        converted_parameters['redshift'] =\ # This is the beginning of the process for converting from source masses to detector frame masses, based on the process of going from detector frame masses to source frame masses onl lines 2203-2227 of the main branch version in Les' fork. 
+            luminosity_distance_to_redshift(output_sample['luminosity_distance'])
+        converted_parameters ['mass_1'] =\
+            mass_1_source * (1 + converted_parameters['redshift'])
+
+
+    if 'central_pressure_2' in converted_parameters.keys(): # There should be an analogous if statement for pc2. 
+        mass_2_source = lalsim_SimNeutronStarMass(converted parameters['central_pressure_1'], family) # At this point, I think the source frame mass_2 has been found. 
+        converted_parameters['redshift'] =\ # This is the beginning of the process for converting from source masses to detector frame masses, based on the process of going from detector frame masses to source frame masses onl lines 2203-2227 of the main branch version in Les' fork. 
+            luminosity_distance_to_redshift(output_sample['luminosity_distance'])
+        converted_parameters ['mass_2'] =\
+                mass_2_source * (1 + converted_parameters['redshift'])
+
+
+
+
+
 def convert_to_lal_binary_neutron_star_parameters(parameters):
     """
     Convert parameters we have into parameters we need.
@@ -315,6 +337,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
     original_keys = list(converted_parameters.keys())
     converted_parameters, added_keys =\
         convert_to_lal_binary_black_hole_parameters(converted_parameters)
+    #converted_parameters = generate_component_masses_from_central_pressures(converted_parameters)
 
     if not any([key in converted_parameters for key in
                 ['lambda_1', 'lambda_2',

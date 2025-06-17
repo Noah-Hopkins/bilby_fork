@@ -945,6 +945,29 @@ def lalsim_SimNeutronStarLoveNumberK2(mass_in_SI, fam):
     return SimNeutronStarLoveNumberK2(mass_in_SI, fam)
 
 
+def lalsim_SimNeutronStarCentralPressure(mass_in_SI, fam): # This might not be necessary. 
+    from lalsimulation import SimNeutronStarCentralPressure
+    try: 
+        mass_in_SI = float(mass_in_SI)
+    except ValueError:
+        raise ValueError("Unable to convert mass_in_SI to float.")
+    except TypeError:
+        raise TypeError("Unable to convert mass_in_SI to float.")
+
+    return SimNeutronStarCentralPressure(mass_in_SI, fam)
+
+
+def lalsim_SimNeutronStarMass(pressure_in_SI, fam): # This needs testing. The variable pressure_in_SI might not really exist yet. 
+    try: 
+        pressure_in_SI = float(pressure_in_SI)
+    except ValueError:
+        raise ValueError("Unable to convert pressure_in_SI to float.")
+    except TypeError:
+        raise TypeError("Unable to convert pressure_in_SI to float.")
+
+    return SimNeutronStarMass(pressure_in_SI, fam)
+
+
 def spline_angle_xform(delta_psi):
     """
     Returns the angle in degrees corresponding to the spline
