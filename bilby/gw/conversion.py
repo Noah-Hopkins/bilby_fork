@@ -289,19 +289,17 @@ def generate_component_masses_from_central_pressures(converted_parameters): # I 
         original_keys = list(converted_parameters.keys())
 
     if 'central_pressure_1' in converted_parameters.keys(): # There should be an analogous if statement for pc2. 
-        mass_1_source = lalsim_SimNeutronStarMassconverted parameters['(central_pressure_1'], family,) # At this point, I think the source frame mass_1 has been found. 
+        mass_1_source = lalsim_SimNeutronStarMass(converted_parameters['(central_pressure_1'], family) # At this point, I think the source frame mass_1 has been found. 
         converted_parameters['redshift'] =\ # This is the beginning of the process for converting from source masses to detector frame masses, based on the process of going from detector frame masses to source frame masses onl lines 2203-2227 of the main branch version in Les' fork. 
             luminosity_distance_to_redshift(output_sample['luminosity_distance'])
-        converted_parameters ['mass_1'] =\
+        converted_parameters['mass_1'] =\
             mass_1_source * (1 + converted_parameters['redshift'])
         added_keys = [key for key in converted_parameters.keys()
                       if key not in original_keys]
-    
-        return converted_parameters, added_keys
 
 
     if 'central_pressure_2' in converted_parameters.keys(): # There should be an analogous if statement for pc2. 
-        mass_2_source = lalsim_SimNeutronStarMass(converted parameters['central_pressure_1'], family) # At this point, I think the source frame mass_2 has been found. 
+        mass_2_source = lalsim_SimNeutronStarMass(converted_parameters['central_pressure_1'], family) # At this point, I think the source frame mass_2 has been found. 
         converted_parameters['redshift'] =\ # This is the beginning of the process for converting from source masses to detector frame masses, based on the process of going from detector frame masses to source frame masses onl lines 2203-2227 of the main branch version in Les' fork. 
             luminosity_distance_to_redshift(output_sample['luminosity_distance'])
         converted_parameters ['mass_2'] =\
@@ -309,7 +307,7 @@ def generate_component_masses_from_central_pressures(converted_parameters): # I 
         added_keys = [key for key in converted_parameters.keys()
                       if key not in original_keys]
     
-        return converted_parameters, added_keys
+    return converted_parameters, added_keys # I need to work more on figuring out how to handle the added keys. 
 
 
 
@@ -348,7 +346,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
     original_keys = list(converted_parameters.keys())
     converted_parameters, added_keys =\
         convert_to_lal_binary_black_hole_parameters(converted_parameters)
-    #converted_parameters = generate_component_masses_from_central_pressures(converted_parameters)
+    converted_parameters, further_added_keys = generate_component_masses_from_central_pressures(converted_parameters)
 
     if not any([key in converted_parameters for key in
                 ['lambda_1', 'lambda_2',
