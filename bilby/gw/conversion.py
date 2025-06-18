@@ -286,7 +286,7 @@ def convert_to_lal_binary_black_hole_parameters(parameters):
 
 
 def generate_component_masses_from_central_pressures(converted_parameters): # I might need additional inputs, such as added_keys. 
-        original_keys = list(converted_parameters.keys())
+    original_keys = list(converted_parameters.keys())
 
     if 'central_pressure_1' in converted_parameters.keys(): # There should be an analogous if statement for pc2. 
         mass_1_source = lalsim_SimNeutronStarMass(converted_parameters['(central_pressure_1'], family) # At this point, I think the source frame mass_1 has been found. 
