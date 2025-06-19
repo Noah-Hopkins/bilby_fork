@@ -295,28 +295,26 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
     family = lalsim_CreateSimNeutronStarFamily(eos)
 
     if 'central_pressure_1' in converted_parameters.keys(): # There should be an analogous if statement for pc2. 
-        mass_1_source = lalsim_SimNeutronStarMass(converted_parameters['central_pressure_1'], family) # At this point, I think the source frame mass_1 has been found. 
+        converted_parameters['mass_1_source'] = lalsim_SimNeutronStarMass(converted_parameters['central_pressure_1'], family) # At this point, I think the source frame mass_1 has been found. 
 # The next line is the beginning of the process for converting from source masses to detector frame masses, based on the process of going from detector frame masses to source frame masses onl lines 2203-2227 of the main branch version in Les' fork. 
         converted_parameters['redshift'] =\
             luminosity_distance_to_redshift(output_sample['luminosity_distance'])
         converted_parameters['mass_1'] =\
-                mass_1_source * (1 + converted_parameters['redshift'])
+                converted_parameters['mass_1_source'] * (1 + converted_parameters['redshift'])
         added_keys = added_keys + [key for key in converted_parameters.keys()
                       if key not in original_keys]
-        added_keys.remove('mass_1')
         
 
 
     if 'central_pressure_2' in converted_parameters.keys(): # There should be an analogous if statement for pc2. 
-        mass_2_source = lalsim_SimNeutronStarMass(converted_parameters['central_pressure_2'], family) # At this point, I think the source frame mass_2 has been found. 
+        converted_parameters['mass_2_source'] = lalsim_SimNeutronStarMass(converted_parameters['central_pressure_2'], family) # At this point, I think the source frame mass_2 has been found. 
 # The next line is the beginning of the process for converting from source masses to detector frame masses, based on the process of going from detector frame masses to source frame masses onl lines 2203-2227 of the main branch version in Les' fork. 
         converted_parameters['redshift'] =\
             luminosity_distance_to_redshift(output_sample['luminosity_distance'])
         converted_parameters ['mass_2'] =\
-                mass_2_source * (1 + converted_parameters['redshift'])
+                converted_parameters['mass_2_source'] * (1 + converted_parameters['redshift'])
         added_keys = added_keys + [key for key in converted_parameters.keys()
                       if key not in original_keys]
-        added_keys.remove('mass_2')
     
     return converted_parameters, added_keys # I need to work more on figuring out how to handle the added keys. 
 
