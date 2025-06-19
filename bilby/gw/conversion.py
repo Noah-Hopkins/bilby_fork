@@ -355,7 +355,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
     original_keys = list(converted_parameters.keys())
     converted_parameters, added_keys =\
         convert_to_lal_binary_black_hole_parameters(converted_parameters)
-    converted_parameters, further_added_keys = generate_component_masses_from_central_pressures(converted_parameters)
+    #converted_parameters, further_added_keys = generate_component_masses_from_central_pressures(converted_parameters)
 
     if not any([key in converted_parameters for key in
                 ['lambda_1', 'lambda_2',
