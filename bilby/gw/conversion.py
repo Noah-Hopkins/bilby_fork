@@ -285,11 +285,12 @@ def convert_to_lal_binary_black_hole_parameters(parameters):
     return converted_parameters, added_keys
 
 
-def generate_component_masses_from_central_pressures(converted_parameters, added_keys, eos = 'placeholder' ): 
+def generate_component_masses_from_central_pressures(converted_parameters, added_keys, eos = 'placeholder'): 
     original_keys = list(converted_parameters.keys())
 
-    if eos = 'placeholder': 
-        print("Placeholder eos in use.")
+    if eos == 'placeholder': 
+        print("No EOS input selected. Without an EOS input asses cannot be found from pressures. ")
+        return
 
 
     family = lalsim_CreateSimNeutronStarFamily(eos)
@@ -355,7 +356,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
     original_keys = list(converted_parameters.keys())
     converted_parameters, added_keys =\
         convert_to_lal_binary_black_hole_parameters(converted_parameters)
-    #converted_parameters, further_added_keys = generate_component_masses_from_central_pressures(converted_parameters)
+    converted_parameters, added_keys = generate_component_masses_from_central_pressures(converted_parameters, added_keys)
 
     if not any([key in converted_parameters for key in
                 ['lambda_1', 'lambda_2',
