@@ -546,19 +546,19 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
             converted_parameters['eos_check'] = all_eos_check
             for key in float_eos_params.keys():
                 converted_parameters[key] = float_eos_params[key]
-    elif 'eos_2p_polytrope_gamma_0' and 'eos_polytrope_scaled_pressure_ratio' in converted_parameters.keys(): # This is the beginning 
-                                                                                                              # of the code for handling
-                                                                                                              # the 2 piece polytrope.  
+    elif 'eos_2p_polytrope_gamma_0' in converted_parameters.keys(): # This is the beginning of the code 
+                                                                    # for handling the 2 piece polytrope.  
 
         converted_parameters = generate_source_frame_parameters(converted_parameters)
         float_eos_params = {} 
         max_len = 1
         eos_keys = ['eos_polytrope_gamma_0',
                     'eos_polytrope_gamma_1',
-                    'eos_polytrope_gamma_2',
-                    'eos_polytrope_scaled_pressure_ratio',
-                    'eos_polytrope_scaled_pressure_2',
-                    'mass_1_source', 'mass_2_source']
+                    'mass_1_source', 'mass_2_source'] # I am not certain yet, but I think maybe I should replace 
+                                                      # mass_1_source and mass_2_source here with central_pressure_1 
+                                                      # and central_pressure_2, or something like that. Maybe I 
+                                                      # should also add eos_polytrope_log_pressure or something like
+                                                      # that to the list of eos_keys. 
         for key in eos_keys:
             try: 
                 if (len(converted_parameters[key]) > max_len):
@@ -566,16 +566,11 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
             except TypeError:
                 float_eos_params[key] = converted_parameters[key]
         if len(float_eos_params) == len(eos_keys):  # case where all eos params are floats (pinned)
-            logp1, logp2 = log_pressure_reparameterization_conversion(
-                converted_parameters['eos_polytrope_scaled_pressure_ratio'],
-                converted_parameters['eos_polytrope_scaled_pressure_2'])
             converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['eos_check'] = \
                 polytrope_or_causal_params_to_lambda_1_lambda_2(
                     converted_parameters['eos_polytrope_gamma_0'],
                     logp1,
                     converted_parameters['eos_polytrope_gamma_1'],
-                    logp2,
-                    converted_parameters['eos_polytrope_gamma_2'],
                     converted_parameters['mass_1_source'],
                     converted_parameters['mass_2_source'],
                     causal=0)
