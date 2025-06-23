@@ -852,6 +852,20 @@ def lalsim_SimNeutronStarEOS3PieceDynamicPolytrope(g0, log10p1_si, g1, log10p2_s
     return SimNeutronStarEOS3PieceDynamicPolytrope(g0, log10p1_si, g1, log10p2_si, g2)
 
 
+def lalsim_SimNeutronStarEOS2PieceStaticPolytrope(g0, g1): 
+    from lalsimulation import SimEOS2PieceStaticPolytrope
+    try: 
+        g0 = float(g0)
+        g1 = float(g1) # I don't think so, but maybe I will need to have one of these for the log10p1_si = 34.5. 
+    except ValueError: 
+        raise ValueError("Unable to convert EOS polytrope parameters to floats")
+    except TypeError:
+        raise TypeError("Unable to convert EOS polytrope parameters to floats")
+
+    return SimNeutronStarEOS2PieceStaticPolytrope(g0, g1)
+
+
+
 def lalsim_SimNeutronStarEOS3PieceCausalAnalytic(v1, log10p1_si, v2, log10p2_si, v3):
     from lalsimulation import SimNeutronStarEOS3PieceCausalAnalytic
     try:
