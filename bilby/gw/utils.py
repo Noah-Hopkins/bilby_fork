@@ -899,6 +899,21 @@ def lalsim_SimNeutronStarEOS3PDViableFamilyCheck(p0, log10p1_si, p1, log10p2_si,
     return SimNeutronStarEOS3PDViableFamilyCheck(p0, log10p1_si, p1, log10p2_si, p2, causal)
 
 
+def lalsim_SimNeutronStarEOS2PDViableFamilyCheck(p0, log10p1_si, p1, causal):
+    from lalsimulation import SimNeutronStarEOS2PDViableFamilyCheck
+    try: 
+        p0 = float(p0)
+        p1 = float(p1)
+        log10p1_si = float(log10p1_si)
+        causal = int(causal)
+    except ValueError:
+        raise ValueError("Unable to convert EOS parameters to floats or int")
+    except TypeError:
+        raise TypeError("Unable to convert EOS parameters to floats or int")
+
+    return SimNeutronStarEOS2PDViableFamilyCheck(p0, log10p1_si, p1, causal)
+
+
 def lalsim_CreateSimNeutronStarFamily(eos):
     from lalsimulation import CreateSimNeutronStarFamily
 
