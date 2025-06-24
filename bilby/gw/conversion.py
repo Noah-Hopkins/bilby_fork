@@ -554,13 +554,11 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
         converted_parameters = generate_source_frame_parameters(converted_parameters)
         float_eos_params = {} 
         max_len = 1
-        eos_keys = ['eos_polytrope_gamma_0',
-                    'eos_polytrope_gamma_1',
+        eos_keys = ['eos_2p_polytrope_gamma_0',
+                    'eos_2p_polytrope_gamma_1',
                     'mass_1_source', 'mass_2_source'] # I am not certain yet, but I think maybe I should replace 
                                                       # mass_1_source and mass_2_source here with central_pressure_1 
-                                                      # and central_pressure_2, or something like that. Maybe I 
-                                                      # should also add eos_polytrope_log_pressure or something like
-                                                      # that to the list of eos_keys. 
+                                                      # and central_pressure_2, or something like that. 
         for key in eos_keys:
             try: 
                 if (len(converted_parameters[key]) > max_len):
@@ -570,31 +568,26 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
         if len(float_eos_params) == len(eos_keys):  # case where all eos params are floats (pinned)
             converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['eos_check'] = \
                 2_piece_polytrope_or_causal_params_to_lambda_1_lambda_2(
-                    converted_parameters['eos_polytrope_gamma_0'],
+                    converted_parameters['eos_2p_polytrope_gamma_0'],
                     logp1,
-                    converted_parameters['eos_polytrope_gamma_1'],
+                    converted_parameters['eos_2p_polytrope_gamma_1'],
                     converted_parameters['mass_1_source'],
                     converted_parameters['mass_2_source'],
                     causal=0)
         elif len(float_eos_params) < len(eos_keys):  # case where some or none are floats (pinned)
             for key in float_eos_params.keys():
                 converted_parameters[key] = np.ones(max_len) * converted_parameters[key]
-            pg0 = converted_parameters['eos_polytrope_gamma_0']
-            pg1 = converted_parameters['eos_polytrope_gamma_1']
-            pg2 = converted_parameters['eos_polytrope_gamma_2']
-            scaledratio = converted_parameters['eos_polytrope_scaled_pressure_ratio']
-            scaled_p2 = converted_parameters['eos_polytrope_scaled_pressure_2']
+            pg0 = converted_parameters['eos_2p_polytrope_gamma_0']
+            pg1 = converted_parameters['eos_2p_polytrope_gamma_1']
             m1s = converted_parameters['mass_1_source']
             m2s = converted_parameters['mass_2_source']
             all_lambda_1 = np.empty(0)
             all_lambda_2 = np.empty(0)
             all_eos_check = np.empty(0, dtype=bool)
-            for (pg_0, pg_1, pg_2, scaled_ratio, scaled_p_2, m1_s,
-                    m2_s) in zip(pg0, pg1, pg2, scaledratio, scaled_p2, m1s, m2s):
-                logp_1, logp_2 = log_pressure_reparameterization_conversion(scaled_ratio, scaled_p_2)
+            for (pg_0, pg_1, m1_s, m2_s) in zip(pg0, pg1, m1s, m2s):
                 lambda_1, lambda_2, eos_check = \
-                    polytrope_or_causal_params_to_lambda_1_lambda_2(
-                        pg_0, logp_1, pg_1, logp_2, pg_2, m1_s, m2_s, causal=0)
+                    2_piece_polytrope_or_causal_params_to_lambda_1_lambda_2(
+                        pg_0, pg_1, m1_s, m2_s, causal=0)
                 all_lambda_1 = np.append(all_lambda_1, lambda_1)
                 all_lambda_2 = np.append(all_lambda_2, lambda_2)
                 all_eos_check = np.append(all_eos_check, eos_check)
