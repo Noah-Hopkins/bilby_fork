@@ -19,6 +19,7 @@ from .utils import (lalsim_SimNeutronStarEOS4ParamSDGammaCheck,
                     lalsim_SimNeutronStarEOS3PieceDynamicPolytrope,
                     lalsim_SimNeutronStarEOS2PieceStaticPolytrope,
                     lalsim_SimNeutronStarEOS3PieceCausalAnalytic,
+                    lalsim_SimNeutronStarEOS2PieceCausalAnalytic,
                     lalsim_SimNeutronStarEOS3PDViableFamilyCheck,
                     lalsim_SimNeutronStarEOS2PDViableFamilyCheck,
                     lalsim_CreateSimNeutronStarFamily,
@@ -568,7 +569,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                 float_eos_params[key] = converted_parameters[key]
         if len(float_eos_params) == len(eos_keys):  # case where all eos params are floats (pinned)
             converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['eos_check'] = \
-                polytrope_or_causal_params_to_lambda_1_lambda_2(
+                2_piece_polytrope_or_causal_params_to_lambda_1_lambda_2(
                     converted_parameters['eos_polytrope_gamma_0'],
                     logp1,
                     converted_parameters['eos_polytrope_gamma_1'],
@@ -838,6 +839,56 @@ def polytrope_or_causal_params_to_lambda_1_lambda_2(
             eos_check = False
         else:
             lambda_1, lambda_2, eos_check = neutron_star_family_physical_check(eos, mass_1_source, mass_2_source)
+
+    return lambda_1, lambda_2, eos_check
+
+
+def 2_piece_polytrope_or_causal_params_to_lambda_1_lambda_2(
+        param1, log10_pressure1_cgs = 35.5, param2, mass_1_source, mass_2_source, causal):
+    """  
+    Converts parameters from sampled dynamic piecewise polytrope parameters
+        to component tidal deformablity parameters.
+    Checks number of points in the equation of state for viability.
+    Note that subtracting 1 from the log10 pressure in cgs converts it to
+        log10 pressure in si units.
+
+    Parameters
+    ----------
+    param1, param2: float
+        either the sampled adiabatic indices in piecewise polytrope model
+        or the sampled causal model params v1, v2
+    log10_pressure1_cgs: float
+        dividing pressures in piecewise polytrope model or causal model
+    mass_1_source, mass_2_source: float
+        source frame component mass parameters in Msuns
+    causal: bool
+        whether or not to use causal polytrope model
+        1 - causal; 0 - not causal
+
+    Returns
+    -------
+    lambda_1: float
+        tidal deformability parameter associated with mass 1
+    lambda_2: float
+        tidal deformability parameter associated with mass 2
+    eos_check: bool
+        whether eos is valid or not
+
+    """
+    eos_check = True 
+    if causal == 0:
+        eos = lalsim_SimNeutronStarEOS2PieceStaticPolytrope(
+            param1, param2)
+    else:
+        eos = lalsim_SimNeutronStarEOS2PieceCausalAnalytic(
+            param1, log10_pressure1_cgs - 1., param2)
+    if lalsim_SimNeutronStarEOS2PDViableFamilyCheck(
+            param1, log10_pressure1_cgs - 1., param2, causal) != 0:
+        lambda_1 = 0.0
+        lambda_2 = 0.0
+        eos_check = False
+    else:
+        lambda_1, lambda_2, eos_check = neutron_star_family_physical_check(eos, mass_1_source, mass_2_source)
 
     return lambda_1, lambda_2, eos_check
 
