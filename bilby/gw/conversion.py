@@ -309,7 +309,6 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
                       if key not in original_keys]
         
 
-
     if 'central_pressure_2' in converted_parameters.keys():  
         converted_parameters['mass_2_source'] = lalsim_SimNeutronStarMass(converted_parameters['central_pressure_2'], family)
 # The next line is the beginning of the process for converting from source masses to detector frame masses. 
@@ -321,8 +320,6 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
                       if key not in original_keys]
     
     return converted_parameters, added_keys
-
-
 
 
 
@@ -550,7 +547,10 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                 converted_parameters[key] = float_eos_params[key]
     elif 'eos_2p_polytrope_gamma_0' in converted_parameters.keys(): 
 
-        converted_parameters = generate_source_frame_parameters(converted_parameters)
+        eos = lalsim_SimNeutronStarEOS2PieceStaticPolytrope(converted_parameters['eos_2p_polytrope_gamma_0'], converted_parameters['eos_2p_polytrope_gamma_1'])
+        converted_parameters, added_keys = generate_component_masses_from_central_pressures(converted_parameters, added_keys, eos)
+        if 'mass_1_source' not in converted_parameters.keys(): 
+            converted_parameters = generate_source_frame_parameters(converted_parameters)
         float_eos_params = {} 
         max_len = 1
         eos_keys = ['eos_2p_polytrope_gamma_0',

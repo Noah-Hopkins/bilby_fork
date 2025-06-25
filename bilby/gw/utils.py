@@ -856,7 +856,7 @@ def lalsim_SimNeutronStarEOS2PieceStaticPolytrope(g0, g1):
     from lalsimulation import SimEOS2PieceStaticPolytrope
     try: 
         g0 = float(g0)
-        g1 = float(g1) # I don't think so, but maybe I will need to have one of these for the log10p1_si = 34.5. 
+        g1 = float(g1)
     except ValueError: 
         raise ValueError("Unable to convert EOS polytrope parameters to floats")
     except TypeError:
