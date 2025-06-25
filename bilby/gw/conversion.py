@@ -292,15 +292,15 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
     original_keys = list(converted_parameters.keys())
 
     if eos == 'placeholder': 
-        print("No EOS input selected. Without an EOS input asses cannot be found from pressures. ")
+        print("No EOS input selected. Without an EOS input masses cannot be found from pressures. ")
         return
 
 
     family = lalsim_CreateSimNeutronStarFamily(eos)
 
-    if 'central_pressure_1' in converted_parameters.keys(): # There should be an analogous if statement for pc2. 
-        converted_parameters['mass_1_source'] = lalsim_SimNeutronStarMass(converted_parameters['central_pressure_1'], family) # At this point, I think the source frame mass_1 has been found. 
-# The next line is the beginning of the process for converting from source masses to detector frame masses, based on the process of going from detector frame masses to source frame masses onl lines 2203-2227 of the main branch version in Les' fork. 
+    if 'central_pressure_1' in converted_parameters.keys(): 
+        converted_parameters['mass_1_source'] = lalsim_SimNeutronStarMass(converted_parameters['central_pressure_1'], family)
+# The next line is the beginning of the process for converting from source masses to detector frame masses. 
         converted_parameters['redshift'] =\
             luminosity_distance_to_redshift(output_sample['luminosity_distance'])
         converted_parameters['mass_1'] =\
@@ -310,9 +310,9 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
         
 
 
-    if 'central_pressure_2' in converted_parameters.keys(): # There should be an analogous if statement for pc2. 
-        converted_parameters['mass_2_source'] = lalsim_SimNeutronStarMass(converted_parameters['central_pressure_2'], family) # At this point, I think the source frame mass_2 has been found. 
-# The next line is the beginning of the process for converting from source masses to detector frame masses, based on the process of going from detector frame masses to source frame masses onl lines 2203-2227 of the main branch version in Les' fork. 
+    if 'central_pressure_2' in converted_parameters.keys():  
+        converted_parameters['mass_2_source'] = lalsim_SimNeutronStarMass(converted_parameters['central_pressure_2'], family)
+# The next line is the beginning of the process for converting from source masses to detector frame masses. 
         converted_parameters['redshift'] =\
             luminosity_distance_to_redshift(output_sample['luminosity_distance'])
         converted_parameters ['mass_2'] =\
@@ -548,17 +548,14 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
             converted_parameters['eos_check'] = all_eos_check
             for key in float_eos_params.keys():
                 converted_parameters[key] = float_eos_params[key]
-    elif 'eos_2p_polytrope_gamma_0' in converted_parameters.keys(): # This is the beginning of the code 
-                                                                    # for handling the 2 piece polytrope.  
+    elif 'eos_2p_polytrope_gamma_0' in converted_parameters.keys(): 
 
         converted_parameters = generate_source_frame_parameters(converted_parameters)
         float_eos_params = {} 
         max_len = 1
         eos_keys = ['eos_2p_polytrope_gamma_0',
                     'eos_2p_polytrope_gamma_1',
-                    'mass_1_source', 'mass_2_source'] # I am not certain yet, but I think maybe I should replace 
-                                                      # mass_1_source and mass_2_source here with central_pressure_1 
-                                                      # and central_pressure_2, or something like that. 
+                    'mass_1_source', 'mass_2_source'] 
         for key in eos_keys:
             try: 
                 if (len(converted_parameters[key]) > max_len):
