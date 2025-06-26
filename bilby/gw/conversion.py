@@ -293,7 +293,7 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
 
     if eos == 'placeholder': 
         print("No EOS input selected. Without an EOS input masses cannot be found from pressures. ")
-        return
+        return converted_parameters, added_keys # Maybe this part should eventually be removed. 
 
 
     family = lalsim_CreateSimNeutronStarFamily(eos)
@@ -356,7 +356,6 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
     original_keys = list(converted_parameters.keys())
     converted_parameters, added_keys =\
         convert_to_lal_binary_black_hole_parameters(converted_parameters)
-    converted_parameters, added_keys = generate_component_masses_from_central_pressures(converted_parameters, added_keys)
 
     if not any([key in converted_parameters for key in
                 ['lambda_1', 'lambda_2',
@@ -564,7 +563,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                 float_eos_params[key] = converted_parameters[key]
         if len(float_eos_params) == len(eos_keys):  # case where all eos params are floats (pinned)
             converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['eos_check'] = \
-                2_piece_polytrope_or_causal_params_to_lambda_1_lambda_2(
+                two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2(
                     converted_parameters['eos_2p_polytrope_gamma_0'],
                     logp1,
                     converted_parameters['eos_2p_polytrope_gamma_1'],
@@ -583,7 +582,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
             all_eos_check = np.empty(0, dtype=bool)
             for (pg_0, pg_1, m1_s, m2_s) in zip(pg0, pg1, m1s, m2s):
                 lambda_1, lambda_2, eos_check = \
-                    2_piece_polytrope_or_causal_params_to_lambda_1_lambda_2(
+                    two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2(
                         pg_0, pg_1, m1_s, m2_s, causal=0)
                 all_lambda_1 = np.append(all_lambda_1, lambda_1)
                 all_lambda_2 = np.append(all_lambda_2, lambda_2)
@@ -833,8 +832,8 @@ def polytrope_or_causal_params_to_lambda_1_lambda_2(
     return lambda_1, lambda_2, eos_check
 
 
-def 2_piece_polytrope_or_causal_params_to_lambda_1_lambda_2(
-        param1, log10_pressure1_cgs = 35.5, param2, mass_1_source, mass_2_source, causal):
+def two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2(
+        param1 = 3, log10_pressure1_cgs = 35.5, param2 = 3, mass_1_source = 1.5, mass_2_source = 1.5, causal = 0):
     """  
     Converts parameters from sampled dynamic piecewise polytrope parameters
         to component tidal deformablity parameters.
