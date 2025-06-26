@@ -298,8 +298,8 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
 
     family = lalsim_CreateSimNeutronStarFamily(eos)
 
-    if 'central_pressure_1' in converted_parameters.keys(): 
-        converted_parameters['mass_1_source'] = lalsim_SimNeutronStarMass(converted_parameters['central_pressure_1'], family)
+    if 'pc1' in converted_parameters.keys(): 
+        converted_parameters['mass_1_source'] = lalsim_SimNeutronStarMass(converted_parameters['pc1'], family)
 # The next line is the beginning of the process for converting from source masses to detector frame masses. 
         converted_parameters['redshift'] =\
             luminosity_distance_to_redshift(output_sample['luminosity_distance'])
@@ -309,8 +309,8 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
                       if key not in original_keys]
         
 
-    if 'central_pressure_2' in converted_parameters.keys():  
-        converted_parameters['mass_2_source'] = lalsim_SimNeutronStarMass(converted_parameters['central_pressure_2'], family)
+    if 'pc2' in converted_parameters.keys():  
+        converted_parameters['mass_2_source'] = lalsim_SimNeutronStarMass(converted_parameters['pc2'], family)
 # The next line is the beginning of the process for converting from source masses to detector frame masses. 
         converted_parameters['redshift'] =\
             luminosity_distance_to_redshift(output_sample['luminosity_distance'])
