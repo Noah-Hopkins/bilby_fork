@@ -987,7 +987,7 @@ def lalsim_SimNeutronStarLoveNumberK2(mass_in_SI, fam):
     return SimNeutronStarLoveNumberK2(mass_in_SI, fam)
 
 
-def lalsim_SimNeutronStarCentralPressure(mass_in_SI, fam): # This might not be necessary. 
+def lalsim_SimNeutronStarCentralPressure(mass_in_SI, fam):
     from lalsimulation import SimNeutronStarCentralPressure
     try: 
         mass_in_SI = float(mass_in_SI)
@@ -999,7 +999,8 @@ def lalsim_SimNeutronStarCentralPressure(mass_in_SI, fam): # This might not be n
     return SimNeutronStarCentralPressure(mass_in_SI, fam)
 
 
-def lalsim_SimNeutronStarMass(pressure_in_SI, fam): # This needs testing. The variable pressure_in_SI might not really exist yet. 
+def lalsim_SimNeutronStarMass(pressure_in_SI, fam): 
+    from lalsimulation import SimNeutronStarMass
     try: 
         pressure_in_SI = float(pressure_in_SI)
     except ValueError:
