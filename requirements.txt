@@ -1,8 +1,8 @@
-bilby.cython>=0.3.0
 dynesty>=2.0.1,<2.2
 emcee
 corner
 numpy
+bilby.cython>=0.3.0
 matplotlib
 # see https://github.com/healpy/healpy/pull/953
 scipy>=1.5

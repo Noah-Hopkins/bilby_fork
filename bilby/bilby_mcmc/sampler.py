@@ -812,6 +812,7 @@ class BilbyPTMCMCSampler(object):
             self.swap_counter["ensemble"] += 1
             self.swap_counter["L2-ensemble"] = 0
             self.ensemble_step()
+            self.swap_ensemble_chains()
 
         if self.ntemps > 1 and self.swap_counter["L2-temperature"] >= self.L2steps:
             self.swap_counter["temperature"] += 1
@@ -865,6 +866,26 @@ class BilbyPTMCMCSampler(object):
                     sampleri.pt_accepted += 1
                 else:
                     sampleri.pt_rejected += 1
+
+    def swap_ensemble_chains(self):
+        for Eindex in range(self.nensemble):
+            sampleri = self.sampler_dictionary[0][Eindex]
+            vi, logli = self._get_sample_to_swap(sampleri)
+
+            samplerj = self.sampler_dictionary[0][Eindex - 1]
+            vj, loglj = self._get_sample_to_swap(samplerj)
+
+            with np.errstate(over="ignore"):
+                alpha_swap = np.exp(logli - loglj)
+
+            if random.rng.uniform(0, 1) <= alpha_swap:
+                sampleri.chain[-1] = vj
+                samplerj.chain[-1] = vi
+                self.sampler_dictionary[0][Eindex] = sampleri
+                self.sampler_dictionary[0][Eindex - 1] = samplerj
+                sampleri.pt_accepted += 1
+            else: 
+                sampleri.pt_rejected += 1
 
     def ensemble_step(self):
         for Tindex, sampler_list in self.sampler_dictionary.items():
