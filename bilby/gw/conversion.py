@@ -29,7 +29,7 @@ from .utils import (lalsim_SimNeutronStarEOS4ParamSDGammaCheck,
                     lalsim_SimNeutronStarMaximumMass,
                     lalsim_SimNeutronStarRadius,
                     lalsim_SimNeutronStarLoveNumberK2,
-                    lalsim_SimNeutronStarCentralPressure, # Maybe this one is not needed. 
+                    lalsim_SimNeutronStarCentralPressure,
                     lalsim_SimNeutronStarMass)
 
 from ..core.likelihood import MarginalizedLikelihoodReconstructionError
@@ -910,6 +910,49 @@ def neutron_star_family_physical_check(eos, mass_1_source, mass_2_source):
     min_mass = lalsim_SimNeutronStarFamMinimumMass(family) / solar_mass
     max_mass = lalsim_SimNeutronStarMaximumMass(family) / solar_mass
     if max_speed_of_sound <= 1.1 and min_mass <= mass_1_source <= max_mass and min_mass <= mass_2_source <= max_mass:
+        lambda_1 = lambda_from_mass_and_family(mass_1_source, family)
+        lambda_2 = lambda_from_mass_and_family(mass_2_source, family)
+    else:
+        lambda_1 = 0.0
+        lambda_2 = 0.0
+        eos_check = False
+
+    return lambda_1, lambda_2, eos_check
+
+
+def neutron_star_family_physical_check_in_central_pressure(eos, pc1, pc2):
+    """
+    Takes in a lalsim eos object. Performs causal and max/min mass eos checks.
+    Calculates component lambdas if eos object passes causality.
+    Accepts pressures instead of masses. 
+    Returns lambda = 0 if not.
+
+    Parameters
+    ----------
+    eos: lalsim swig-wrapped eos object
+        the neutron star equation of state
+    pc1, pc2: float
+        source frame component central pressures 1 and 2 in pascals
+
+    Returns
+    -------
+    lambda_1, lambda_2: float
+        component tidal deformability parameters
+    eos_check: bool
+        whether or not the equation of state is physically allowed
+
+    """
+    eos_check = True
+    family = lalsim_CreateSimNeutronStarFamily(eos)
+    max_pseudo_enthalpy = lalsim_SimNeutronStarEOSMaxPseudoEnthalpy(eos)
+    max_speed_of_sound = lalsim_SimNeutronStarEOSSpeedOfSoundGeometerized(max_pseudo_enthalpy, eos)
+    min_mass = lalsim_SimNeutronStarFamMinimumMass(family) / solar_mass
+    max_mass = lalsim_SimNeutronStarMaximumMass(family) / solar_mass
+    min_mass_pressure = lalsim_SimNeutronStarCentralPressure(min_mass, family)
+    max_mass_pressure = lalsim_SimNeutronStarCentralPressure(max_mass, family)
+    if max_speed_of_sound <= 1.1 and min_mass_pressure <= pc1 <= max_mass_pressure and min_mass_pressure <= pc2 <= max_mass_pressure:
+        mass_1_source = lalsim_SimNeutronStarMass(pc1, family)
+        mass_2_source = lalsim_SimNeutronStarMass(pc2, family)
         lambda_1 = lambda_from_mass_and_family(mass_1_source, family)
         lambda_2 = lambda_from_mass_and_family(mass_2_source, family)
     else:
