@@ -290,17 +290,16 @@ def convert_to_lal_binary_black_hole_parameters(parameters):
 
 def generate_component_masses_from_central_pressures(converted_parameters, added_keys, eos = 'placeholder'): 
     original_keys = list(converted_parameters.keys())
-
+    
     if eos == 'placeholder': 
         print("No EOS input selected. Without an EOS input masses cannot be found from pressures. ")
-        return converted_parameters, added_keys # Maybe this part should eventually be removed. 
-
+        return converted_parameters, added_keys 
+    
 
     family = lalsim_CreateSimNeutronStarFamily(eos)
 
     if 'pc1' in converted_parameters.keys(): 
-        converted_parameters['mass_1_source'] = lalsim_SimNeutronStarMass(converted_parameters['pc1'], family)
-# The next line is the beginning of the process for converting from source masses to detector frame masses. 
+        converted_parameters['mass_1_source'] = lalsim_SimNeutronStarMass(converted_parameters['pc1'], family) / solar_mass
         converted_parameters['redshift'] =\
             luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
         converted_parameters['mass_1'] =\
@@ -310,8 +309,7 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
         
 
     if 'pc2' in converted_parameters.keys():  
-        converted_parameters['mass_2_source'] = lalsim_SimNeutronStarMass(converted_parameters['pc2'], family)
-# The next line is the beginning of the process for converting from source masses to detector frame masses. 
+        converted_parameters['mass_2_source'] = lalsim_SimNeutronStarMass(converted_parameters['pc2'], family) / solar_mass
         converted_parameters['redshift'] =\
             luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
         converted_parameters['mass_2'] =\
