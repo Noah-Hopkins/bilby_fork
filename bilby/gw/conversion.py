@@ -314,7 +314,7 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
 # The next line is the beginning of the process for converting from source masses to detector frame masses. 
         converted_parameters['redshift'] =\
             luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
-        converted_parameters ['mass_2'] =\
+        converted_parameters['mass_2'] =\
                 converted_parameters['mass_2_source'] * (1 + converted_parameters['redshift'])
         added_keys = added_keys + [key for key in converted_parameters.keys()
                       if key not in original_keys]
