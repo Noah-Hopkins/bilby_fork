@@ -595,8 +595,8 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
             converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['eos_check'] = \
                 two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2(
                     converted_parameters['eos_2p_polytrope_gamma_0'],
-                    logp1,
                     converted_parameters['eos_2p_polytrope_gamma_1'],
+                    35.5,
                     converted_parameters['mass_1_source'],
                     converted_parameters['mass_2_source'],
                     causal=0)
