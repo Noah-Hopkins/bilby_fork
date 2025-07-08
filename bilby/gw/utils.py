@@ -853,7 +853,7 @@ def lalsim_SimNeutronStarEOS3PieceDynamicPolytrope(g0, log10p1_si, g1, log10p2_s
 
 
 def lalsim_SimNeutronStarEOS2PieceStaticPolytrope(g0, g1): 
-    from lalsimulation import SimEOS2PieceStaticPolytrope
+    from lalsimulation import SimNeutronStarEOS2PieceStaticPolytrope
     try: 
         g0 = float(g0)
         g1 = float(g1)
