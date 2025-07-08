@@ -924,8 +924,6 @@ def lalsim_SimNeutronStarEOS2PDViableFamilyCheck(p0, log10p1_si, p1, causal):
     except TypeError:
         raise TypeError("Unable to convert EOS parameters to floats or int")
 
-    print('p0: ', p0, 'log10p1_si: ', log10p1_si, 'p1: ', p1, 'causal: ', causal)
-
     return SimNeutronStarEOS2PDViableFamilyCheck(p0, log10p1_si, p1, causal)
 
 
