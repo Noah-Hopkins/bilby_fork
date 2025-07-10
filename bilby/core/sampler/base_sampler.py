@@ -359,6 +359,7 @@ class Sampler(object):
                 isinstance(self.priors[key], Prior)
                 and self.priors[key].is_fixed is False
             ):
+                logger.info(f"self._search_parameter_keys: {self._search_parameter_keys}")
                 self._search_parameter_keys.append(key)
             elif isinstance(self.priors[key], Constraint):
                 self._constraint_parameter_keys.append(key)
@@ -368,6 +369,7 @@ class Sampler(object):
 
     def _log_information_about_priors_and_likelihood(self):
         logger.info("Analysis priors:")
+        logger.info(f"self._search_parameter_keys: {self._search_parameter_keys}")
         for key in self._search_parameter_keys + self._constraint_parameter_keys:
             logger.info(f"{key}={self.priors[key]}")
         for key in self._fixed_parameter_keys:
