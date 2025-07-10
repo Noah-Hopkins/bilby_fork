@@ -168,10 +168,7 @@ class WaveformGenerator(object):
     def _calculate_strain(self, model, model_data_points, transformation_function, transformed_model,
                           transformed_model_data_points, parameters):
         if parameters is not None:
-            if 'mass_1' in parameters:
-                print('parameters #1: ', parameters)
             self.parameters = parameters
-            print('self.parameters #2: ', self.parameters)
         if self.parameters == self._cache['parameters'] and self._cache['model'] == model and \
                 self._cache['transformed_model'] == transformed_model:
             return self._cache['waveform']

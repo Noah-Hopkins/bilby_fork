@@ -233,6 +233,7 @@ def run_sampler(
 
     from . import IMPLEMENTED_SAMPLERS
 
+    print("priors #-1 are ", priors)
     if priors is None:
         priors = dict()
 

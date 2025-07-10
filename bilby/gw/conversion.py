@@ -382,7 +382,6 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
     added_keys: list
         keys which are added to parameters during function call
     """
-    print('It is definitely being used somewhere. ')
     converted_parameters = parameters.copy()
     original_keys = list(converted_parameters.keys())
     converted_parameters, added_keys =\
@@ -395,7 +394,6 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
         converted_parameters['lambda_1'] = 0
         converted_parameters['lambda_2'] = 0
         added_keys = added_keys + ['lambda_1', 'lambda_2']
-        print('It is doing this instead. ')
         return converted_parameters, added_keys
 
     if 'delta_lambda_tilde' in converted_parameters.keys():
@@ -580,9 +578,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
 
         eos = lalsim_SimNeutronStarEOS2PieceStaticPolytrope(converted_parameters['eos_2p_polytrope_gamma_0'], converted_parameters['eos_2p_polytrope_gamma_1'])
         converted_parameters, added_keys = generate_component_masses_from_central_pressures(converted_parameters, added_keys, eos)
-        print('Part 1 has happened. ')
         if 'mass_1_source' not in converted_parameters.keys(): 
-            print('Part 2 has happened. ')
             converted_parameters = generate_source_frame_parameters(converted_parameters)
         float_eos_params = {} 
         max_len = 1
@@ -910,11 +906,9 @@ def two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2(
         lambda_1 = 0.0
         lambda_2 = 0.0
         eos_check = False
-        print('Failed the family check. ')
     else:
         lambda_1, lambda_2, eos_check = neutron_star_family_physical_check(eos, mass_1_source, mass_2_source)
 
-    print('eos_check = ', eos_check)
     return lambda_1, lambda_2, eos_check
 
 
