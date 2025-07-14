@@ -426,7 +426,11 @@ class Chain(object):
                     f"Could not plot histogram for parameter {key} due to infinite values"
                 )
             else:
-                ax.hist(yy, bins=50, alpha=0.8, density=True)
+                logger.info(f"The key here is {key}. ")
+                try:
+                    ax.hist(yy, bins=50, alpha=0.8, density=True)
+                except:
+                    logger.info(f"The offending yy is {yy}. ")
                 ax.set_xlabel(self._get_plot_label_by_key(key, priors))
 
         # Add x-axes labels to the traceplots
