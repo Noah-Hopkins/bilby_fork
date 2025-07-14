@@ -292,20 +292,20 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
     """
     Takes in converted_parameters array, added_keys list of any keys previously added to 
     converted_parameters, and equation of state. Calculates source frame and detector frame 
-    component masses based component central pressures if component central pressures are 
+    component masses based component log central pressures if component log central pressures are 
     present. Requires luminosity_distance to be in converted_parameters for the calculation 
     of detector frame component masses to work. Does nothing if all inputs are provided, 
-    but component central pressures are not in converted_parameters. If no eos is provided, 
+    but component log central pressures are not in converted_parameters. If no eos is provided, 
     then the function will be exited around the beginning after printing a message about 
     the issue. 
 
-    Input central pressures are expected in pascals. Output masses are in solar masses. 
+    Input log central pressures are expected in cgs. Output masses are in solar masses. 
     
     Parameters
     ----------
     converted_parameters: dict
         dictionary of parameter values that the function uses to produce component masses if luminosity_distance 
-        and central pressures are included. 
+        and log central pressures are included. 
     added_keys: list
         keys which were added to converted_parameters during the operation of previous functions
     eos: lalsim swig-wrapped eos object
@@ -315,7 +315,7 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
     -------
     converted_parameters: dict
         dictionary of the required parameters, now including source frame and detector frame component masses
-        along with redshift if there were component central pressures going in
+        along with redshift if there were component log central pressures going in
     added_keys: list
         keys which are added to converted_parameters during function call
 
@@ -330,8 +330,8 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
 
     family = lalsim_CreateSimNeutronStarFamily(eos)
 
-    if 'pc1' in converted_parameters.keys(): 
-        converted_parameters['mass_1_source'] = lalsim_SimNeutronStarMass(converted_parameters['pc1'], family) / solar_mass
+    if 'logpc1' in converted_parameters.keys(): 
+        converted_parameters['mass_1_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['logpc1']-1), family) / solar_mass
         converted_parameters['redshift'] =\
             luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
         converted_parameters['mass_1'] =\
@@ -340,8 +340,8 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
                       if key not in original_keys]
         
 
-    if 'pc2' in converted_parameters.keys():  
-        converted_parameters['mass_2_source'] = lalsim_SimNeutronStarMass(converted_parameters['pc2'], family) / solar_mass
+    if 'logpc2' in converted_parameters.keys():  
+        converted_parameters['mass_2_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['logpc2']-1), family) / solar_mass
         converted_parameters['redshift'] =\
             luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
         converted_parameters['mass_2'] =\
