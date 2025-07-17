@@ -574,9 +574,18 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
             converted_parameters['eos_check'] = all_eos_check
             for key in float_eos_params.keys():
                 converted_parameters[key] = float_eos_params[key]
-    elif 'eos_2p_polytrope_gamma_0' in converted_parameters.keys(): 
-
-        eos = lalsim_SimNeutronStarEOS2PieceStaticPolytrope(converted_parameters['eos_2p_polytrope_gamma_0'], converted_parameters['eos_2p_polytrope_gamma_1'])
+    elif 'eos_2p_polytrope_gamma_0' in converted_parameters.keys():
+        if not isinstance(converted_parameters['eos_2p_polytrope_gamma_0'], np.float64):
+            if not isinstance(converted_parameters['eos_2p_polytrope_gamma_0'], np.ndarray):
+                logger.info(f"The type for converted_parameters['eos_2p_polytrope_gamma_0'] {type(converted_parameters['eos_2p_polytrope_gamma_0'])}")
+        if isinstance(converted_parameters['eos_2p_polytrope_gamma_0'], Series):
+            eos = [None]*len(converted_parameters['eos_2p_polytrope_gamma_0'])
+            iii = 0
+            while iii < len(converted_parameters['eos_2p_polytrope_gamma_0']):
+                eos[iii] = lalsim_SimNeutronStarEOS2PieceStaticPolytrope(converted_parameters['eos_2p_polytrope_gamma_0'][iii], converted_parameters['eos_2p_polytrope_gamma_1'][iii])
+                iii += 1
+        else: 
+            eos = lalsim_SimNeutronStarEOS2PieceStaticPolytrope(converted_parameters['eos_2p_polytrope_gamma_0'], converted_parameters['eos_2p_polytrope_gamma_1'])
         converted_parameters, added_keys = generate_component_masses_from_central_pressures(converted_parameters, added_keys, eos)
         if 'mass_1_source' not in converted_parameters.keys(): 
             converted_parameters = generate_source_frame_parameters(converted_parameters)
