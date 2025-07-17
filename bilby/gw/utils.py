@@ -860,6 +860,7 @@ def lalsim_SimNeutronStarEOS2PieceStaticPolytrope(g0, g1):
     except ValueError: 
         raise ValueError("Unable to convert EOS polytrope parameters to floats")
     except TypeError:
+        print(g0, g1)
         raise TypeError("Unable to convert EOS polytrope parameters to floats")
 
     return SimNeutronStarEOS2PieceStaticPolytrope(g0, g1)
