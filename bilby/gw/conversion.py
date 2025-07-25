@@ -631,12 +631,12 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                 converted_parameters['mass_1_source'] = all_mass_1_source
                 converted_parameters['mass_2_source'] = all_mass_2_source
                 converted_parameters['mass_1'] = all_mass_1
-                converted_parameters['mass_2'] = all_mass_2
-                converted_parameters['eos_check'] = all_eos_check
             except:
-                print(f"converted_parameters is {converted_parameters}. len(all_mass_1_source) is {len(all_mass_1_source)}. ")
+                print(f"converted_parameters is {converted_parameters}. len(all_mass_1) is {len(all_mass_1)}. len(all_mass_2) is {len(all_mass_2)}. ")
                 print(pg0, pg1, logpc1, logpc2)
-                print(all_lambda_1, all_lambda_2, all_mass_1_source, all_mass_2_source, all_mass_1, all_mass_2)
+                print(f"all_lambda_1 is {all_lambda_1}, all_lambda_2 is {all_lambda_2}, all_mass_1_source is {all_mass_1_source}, all_mass_2_source is {all_mass_2_source}, all_mass_1 is {all_mass_1}, all_mass_2 is {all_mass_1}")
+            converted_parameters['mass_2'] = all_mass_2
+            converted_parameters['eos_check'] = all_eos_check
             for key in float_eos_params.keys():
                 converted_parameters[key] = float_eos_params[key]
             print("At #3. ")
