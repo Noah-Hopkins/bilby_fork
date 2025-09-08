@@ -328,7 +328,7 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
         return converted_parameters, added_keys 
     
 
-    family = lalsim_CreateSimNeutronStarFamily(eos)
+    converted_parameters['family'] = lalsim_CreateSimNeutronStarFamily(eos)
 
     if 'logpc1' in converted_parameters.keys(): 
         converted_parameters['mass_1_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['logpc1']-1), family) / solar_mass
@@ -382,7 +382,6 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
     added_keys: list
         keys which are added to parameters during function call
     """
-    print("At #2. ")
     converted_parameters = parameters.copy()
     original_keys = list(converted_parameters.keys())
     converted_parameters, added_keys =\
@@ -639,7 +638,6 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
             converted_parameters['eos_check'] = all_eos_check
             for key in float_eos_params.keys():
                 converted_parameters[key] = float_eos_params[key]
-            print("At #3. ")
     elif 'eos_v1' in converted_parameters.keys():
         converted_parameters = generate_source_frame_parameters(converted_parameters)
         float_eos_params = {}
@@ -923,21 +921,21 @@ def two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_
     else:
         eos = lalsim_SimNeutronStarEOS2PieceCausalAnalytic(
                 param1, log10_pressure1_cgs - 1., param2)
-    passing_parameters = {'logpc1': logpc1, 'logpc2': logpc2, 'luminosity_distance': luminosity_distance}
+        passing_parameters = {'logpc1': logpc1, 'logpc2': logpc2, 'luminosity_distance': luminosity_distance, 'family': family}
     passing_parameters, added_keys = generate_component_masses_from_central_pressures(passing_parameters, added_keys, eos)
-    mass_1_source, mass_2_source, mass_1, mass_2 = passing_parameters['mass_1_source'], passing_parameters['mass_2_source'], passing_parameters['mass_1'], passing_parameters['mass_2']
+    mass_1_source, mass_2_source, mass_1, mass_2, family = passing_parameters['mass_1_source'], passing_parameters['mass_2_source'], passing_parameters['mass_1'], passing_parameters['mass_2'], passing_parameters['family']
     if lalsim_SimNeutronStarEOS2PDViableFamilyCheck(
             param1, log10_pressure1_cgs - 1., param2, causal) != 0:
         lambda_1 = 0.0
         lambda_2 = 0.0
         eos_check = False
     else:
-        lambda_1, lambda_2, eos_check = neutron_star_family_physical_check(eos, mass_1_source, mass_2_source)
+        lambda_1, lambda_2, eos_check = neutron_star_family_physical_check(eos, mass_1_source, mass_2_source, family)
 
     return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, added_keys, eos_check
 
 
-def neutron_star_family_physical_check(eos, mass_1_source, mass_2_source):
+def neutron_star_family_physical_check(eos, mass_1_source, mass_2_source, family = 'fake'):
     """
     Takes in a lalsim eos object. Performs causal and max/min mass eos checks.
     Calculates component lambdas if eos object passes causality.
@@ -959,7 +957,8 @@ def neutron_star_family_physical_check(eos, mass_1_source, mass_2_source):
 
     """
     eos_check = True
-    family = lalsim_CreateSimNeutronStarFamily(eos)
+    if family == 'fake':
+        family = lalsim_CreateSimNeutronStarFamily(eos)
     max_pseudo_enthalpy = lalsim_SimNeutronStarEOSMaxPseudoEnthalpy(eos)
     max_speed_of_sound = lalsim_SimNeutronStarEOSSpeedOfSoundGeometerized(max_pseudo_enthalpy, eos)
     min_mass = lalsim_SimNeutronStarFamMinimumMass(family) / solar_mass
@@ -975,7 +974,7 @@ def neutron_star_family_physical_check(eos, mass_1_source, mass_2_source):
     return lambda_1, lambda_2, eos_check
 
 
-def neutron_star_family_physical_check_in_central_pressure(eos, pc1, pc2):
+def neutron_star_family_physical_check_in_central_pressure(eos, pc1, pc2, family = 'fake'):
     """
     Takes in a lalsim eos object. Performs causal and max/min mass eos checks.
     Calculates component lambdas if eos object passes causality.
@@ -998,7 +997,8 @@ def neutron_star_family_physical_check_in_central_pressure(eos, pc1, pc2):
 
     """
     eos_check = True
-    family = lalsim_CreateSimNeutronStarFamily(eos)
+    if family == 'fake':
+        family = lalsim_CreateSimNeutronStarFamily(eos)
     max_pseudo_enthalpy = lalsim_SimNeutronStarEOSMaxPseudoEnthalpy(eos)
     max_speed_of_sound = lalsim_SimNeutronStarEOSSpeedOfSoundGeometerized(max_pseudo_enthalpy, eos)
     min_mass = lalsim_SimNeutronStarFamMinimumMass(family)
@@ -1970,7 +1970,6 @@ def generate_all_bbh_parameters(sample, likelihood=None, priors=None, npool=1):
        this function, the initial value of :code:`likelihood.parameters` are
        saved and reset at the end of the function.
     """
-    print("At #1. ")
     waveform_defaults = {
         'reference_frequency': 50.0, 'waveform_approximant': 'IMRPhenomPv2',
         'minimum_frequency': 20.0}
