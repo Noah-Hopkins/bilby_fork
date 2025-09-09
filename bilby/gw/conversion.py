@@ -923,7 +923,7 @@ def two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_
     else:
         eos = lalsim_SimNeutronStarEOS2PieceCausalAnalytic(
                 param1, log10_pressure1_cgs - 1., param2)
-        passing_parameters = {'logpc1': logpc1, 'logpc2': logpc2, 'luminosity_distance': luminosity_distance, 'family': family}
+    passing_parameters = {'logpc1': logpc1, 'logpc2': logpc2, 'luminosity_distance': luminosity_distance, 'family': family}
     passing_parameters, added_keys = generate_component_masses_from_central_pressures(passing_parameters, added_keys, eos)
     mass_1_source, mass_2_source, mass_1, mass_2, family = passing_parameters['mass_1_source'], passing_parameters['mass_2_source'], passing_parameters['mass_1'], passing_parameters['mass_2'], passing_parameters['family']
     if lalsim_SimNeutronStarEOS2PDViableFamilyCheck(
