@@ -334,7 +334,7 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
         converted_parameters['mass_1_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['logpc1']-1), family) / solar_mass
         converted_parameters['redshift'] =\
             luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
-        print(f"converted_parameters['luminosity_distance'] = {converted_parameters['luminosity_distance']} and converted_parameters['redshift'] = {converted_parameters['redshift']}")
+        print(f"len(converted_parameters['luminosity_distance']) = {len(converted_parameters['luminosity_distance'])} and len(converted_parameters['redshift']) = {len(converted_parameters['redshift'])}")
         converted_parameters['mass_1'] =\
                 converted_parameters['mass_1_source'] * (1 + converted_parameters['redshift'])
         added_keys = added_keys + [key for key in converted_parameters.keys()
@@ -345,7 +345,7 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
         converted_parameters['mass_2_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['logpc2']-1), family) / solar_mass
         converted_parameters['redshift'] =\
             luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
-        print(f"converted_parameters['luminosity_distance'] = {converted_parameters['luminosity_distance']} and converted_parameters['redshift'] = {converted_parameters['redshift']}")
+        print(f"len(converted_parameters['luminosity_distance']) = {len(converted_parameters['luminosity_distance'])} and len(converted_parameters['redshift']) = {len(converted_parameters['redshift'])}")
         converted_parameters['mass_2'] =\
                 converted_parameters['mass_2_source'] * (1 + converted_parameters['redshift'])
         added_keys = added_keys + [key for key in converted_parameters.keys()
