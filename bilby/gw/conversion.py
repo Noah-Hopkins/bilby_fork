@@ -605,6 +605,8 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
             pg1 = converted_parameters['eos_2p_polytrope_gamma_1']
             logpc1 = converted_parameters['logpc1']
             logpc2 = converted_parameters['logpc2']
+            if type(converted_parameters['luminosity_distance']) != float:
+                print("The len(converted_parameters['luminosity_distance']) is {len(converted_parameters['luminosity_distance'])}")
             lumin_dist = converted_parameters['luminosity_distance']
             all_mass_1_source = np.empty(0)
             all_mass_2_source = np.empty(0)
