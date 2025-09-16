@@ -605,8 +605,6 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
             pg1 = converted_parameters['eos_2p_polytrope_gamma_1']
             logpc1 = converted_parameters['logpc1']
             logpc2 = converted_parameters['logpc2']
-            if type(converted_parameters['luminosity_distance']) != float:
-                print("The len(converted_parameters['luminosity_distance']) is {len(converted_parameters['luminosity_distance'])}")
             lumin_dist = converted_parameters['luminosity_distance']
             all_mass_1_source = np.empty(0)
             all_mass_2_source = np.empty(0)
@@ -615,17 +613,30 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
             all_lambda_1 = np.empty(0)
             all_lambda_2 = np.empty(0)
             all_eos_check = np.empty(0, dtype=bool)
-            for (pg_0, pg_1, log_pc1, log_pc2) in zip(pg0, pg1, logpc1, logpc2):
-                lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, added_keys, eos_check = \
-                    two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(
-                        pg_0, 35.5, pg_1, log_pc1, log_pc2, causal=0, luminosity_distance = lumin_dist, added_keys = added_keys)
-                all_lambda_1 = np.append(all_lambda_1, lambda_1)
-                all_lambda_2 = np.append(all_lambda_2, lambda_2)
-                all_mass_1_source = np.append(all_mass_1_source, mass_1_source)
-                all_mass_2_source = np.append(all_mass_2_source, mass_2_source)
-                all_mass_1 = np.append(all_mass_1, mass_1)
-                all_mass_2 = np.append(all_mass_2, mass_2)
-                all_eos_check = np.append(all_eos_check, eos_check)
+            if (type(lumin_dist) == float): 
+                for (pg_0, pg_1, log_pc1, log_pc2) in zip(pg0, pg1, logpc1, logpc2):
+                    lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, added_keys, eos_check = \
+                        two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(
+                                pg_0, 35.5, pg_1, log_pc1, log_pc2, causal=0, luminosity_distance = lumin_dist, added_keys = added_keys)
+                    all_lambda_1 = np.append(all_lambda_1, lambda_1)
+                    all_lambda_2 = np.append(all_lambda_2, lambda_2)
+                    all_mass_1_source = np.append(all_mass_1_source, mass_1_source)
+                    all_mass_2_source = np.append(all_mass_2_source, mass_2_source)
+                    all_mass_1 = np.append(all_mass_1, mass_1)
+                    all_mass_2 = np.append(all_mass_2, mass_2)
+                    all_eos_check = np.append(all_eos_check, eos_check)
+            else: 
+                for (pg_0, pg_1, log_pc1, log_pc2, lum_dist) in zip(pg0, pg1, logpc1, logpc2, lumin_dist):
+                    lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, added_keys, eos_check = \
+                            two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(
+                                    pg_0, 35.5, pg_1, log_pc1, log_pc2, causal=0, luminosity_distance = lum_dist, added_keys = added_keys)
+                    all_lambda_1 = np.append(all_lambda_1, lambda_1)
+                    all_lambda_2 = np.append(all_lambda_2, lambda_2)
+                    all_mass_1_source = np.append(all_mass_1_source, mass_1_source)
+                    all_mass_2_source = np.append(all_mass_2_source, mass_2_source)
+                    all_mass_1 = np.append(all_mass_1, mass_1)
+                    all_mass_2 = np.append(all_mass_2, mass_2)
+                    all_eos_check = np.append(all_eos_check, eos_check)
             try:
                 converted_parameters['lambda_1'] = all_lambda_1
                 converted_parameters['lambda_2'] = all_lambda_2 
@@ -925,8 +936,6 @@ def two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_
         eos = lalsim_SimNeutronStarEOS2PieceCausalAnalytic(
                 param1, log10_pressure1_cgs - 1., param2)
     family = 'fake'
-    if type(luminosity_distance) != float: 
-        print("The len(luminosity_distance) is {len(luminosity_distance)}")
     passing_parameters = {'logpc1': logpc1, 'logpc2': logpc2, 'luminosity_distance': luminosity_distance, 'family': family}
     passing_parameters, added_keys = generate_component_masses_from_central_pressures(passing_parameters, added_keys, eos)
     mass_1_source, mass_2_source, mass_1, mass_2, family = passing_parameters['mass_1_source'], passing_parameters['mass_2_source'], passing_parameters['mass_1'], passing_parameters['mass_2'], passing_parameters['family']
