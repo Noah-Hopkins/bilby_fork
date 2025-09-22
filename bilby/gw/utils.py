@@ -862,7 +862,11 @@ def lalsim_SimNeutronStarEOS2PieceStaticPolytrope(g0, g1):
     except TypeError:
         raise TypeError("Unable to convert EOS polytrope parameters to floats")
 
-    return SimNeutronStarEOS2PieceStaticPolytrope(g0, g1)
+    try: 
+        return SimNeutronStarEOS2PieceStaticPolytrope(g0, g1)
+    except: 
+        print(f"The issue happened when g0 is {g0} and g1 is {g1}.")
+        raise("Something, probably the XLAL error from interp.c:150, has occured.")
 
 
 def lalsim_SimNeutronStarEOS3PieceCausalAnalytic(v1, log10p1_si, v2, log10p2_si, v3):
