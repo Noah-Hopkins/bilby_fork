@@ -945,7 +945,11 @@ def two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_
         lambda_2 = 0.0
         eos_check = False
     else:
-        lambda_1, lambda_2, eos_check = neutron_star_family_physical_check(eos, mass_1_source, mass_2_source)
+        try: 
+            lambda_1, lambda_2, eos_check = neutron_star_family_physical_check(eos, mass_1_source, mass_2_source)
+        except: 
+            print(f"The issue happened when param1 is {param1}, param2 is {param2}, mass_1_source is {mass_1_source}, and mass_2_source is {mass_2_source}.")
+            raise("Something, probably the XLAL error from interp.c:150, has occured.")
 
     return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, added_keys, eos_check
 

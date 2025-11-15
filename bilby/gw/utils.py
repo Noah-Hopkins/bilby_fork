@@ -861,12 +861,7 @@ def lalsim_SimNeutronStarEOS2PieceStaticPolytrope(g0, g1):
         raise ValueError("Unable to convert EOS polytrope parameters to floats")
     except TypeError:
         raise TypeError("Unable to convert EOS polytrope parameters to floats")
-
-    try: 
-        return SimNeutronStarEOS2PieceStaticPolytrope(g0, g1)
-    except: 
-        print(f"The issue happened when g0 is {g0} and g1 is {g1}.")
-        raise("Something, probably the XLAL error from interp.c:150, has occured.")
+    return SimNeutronStarEOS2PieceStaticPolytrope(g0, g1)
 
 
 def lalsim_SimNeutronStarEOS3PieceCausalAnalytic(v1, log10p1_si, v2, log10p2_si, v3):
@@ -952,7 +947,11 @@ def lalsim_SimNeutronStarEOSSpeedOfSoundGeometerized(max_pseudo_enthalpy, eos):
     except TypeError:
         raise TypeError("Unable to convert max_pseudo_enthalpy to float.")
 
-    return SimNeutronStarEOSSpeedOfSoundGeometerized(max_pseudo_enthalpy, eos)
+    try: 
+        return SimNeutronStarEOSSpeedOfSoundGeometerized(max_pseudo_enthalpy, eos)
+    except: 
+        print(f"The issue happened when max_pseudo_enthalpy is {max_pseudo_enthalpy} and eox is {eos}.")
+        raise("Something, probably the XLAL error from interp.c:150, has occured.")
 
 
 def lalsim_SimNeutronStarFamMinimumMass(fam):
