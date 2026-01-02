@@ -888,8 +888,8 @@ class BilbyPTMCMCSampler(object):
                 samplerj.chain[-1] = vi
                 self.sampler_dictionary[0][Eindex] = sampleri
                 self.sampler_dictionary[0][Eindex - 1] = samplerj
-                #if (Eindex == self.nensemble-1): 
-                    #print("chad")
+                if (Eindex == self.nensemble-1): 
+                    print("chad")
                     #print(f"Last chain's sample is now {vj}. Second last chain's sample is now {vi}. ")
                 sampleri.pt_accepted += 1
             else: 
