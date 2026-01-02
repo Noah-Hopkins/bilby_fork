@@ -871,26 +871,27 @@ class BilbyPTMCMCSampler(object):
 
     def swap_ensemble_chains(self):
         for Eindex in range(self.nensemble):
-            print(f"Eindex is {Eindex}")
-            sampleri = self.sampler_dictionary[0][Eindex]
-            vi, logli = self._get_sample_to_swap(sampleri)
+            if (Eindex != 0): 
+                print(f"Eindex is {Eindex}")
+                sampleri = self.sampler_dictionary[0][Eindex]
+                vi, logli = self._get_sample_to_swap(sampleri)
 
-            samplerj = self.sampler_dictionary[0][Eindex - 1]
-            vj, loglj = self._get_sample_to_swap(samplerj)
+                samplerj = self.sampler_dictionary[0][Eindex - 1]
+                vj, loglj = self._get_sample_to_swap(samplerj)
 
-            with np.errstate(over="ignore"):
-                alpha_swap = np.exp(logli - loglj)
-                print(f"alpha_swap for ensemble this time is {alpha_swap}")
-                print(f"This chain's sample was {vi}. The previous chain's sample was {vj}. ")
+                with np.errstate(over="ignore"):
+                    alpha_swap = np.exp(loglj - logli)
+                    print(f"alpha_swap for ensemble this time is {alpha_swap}")
+                    print(f"This chain's sample was {vi}. The previous chain's sample was {vj}. ")
 
-            if random.rng.uniform(0, 1) <= alpha_swap:
-                sampleri.chain[-1] = vj
-                samplerj.chain[-1] = vi
-                self.sampler_dictionary[0][Eindex] = sampleri
-                self.sampler_dictionary[0][Eindex - 1] = samplerj
-                sampleri.pt_accepted += 1
-            else: 
-                sampleri.pt_rejected += 1
+                if random.rng.uniform(0, 1) <= alpha_swap:
+                    sampleri.chain[-1] = vj
+                    samplerj.chain[-1] = vi
+                    self.sampler_dictionary[0][Eindex] = sampleri
+                    self.sampler_dictionary[0][Eindex - 1] = samplerj
+                    sampleri.pt_accepted += 1
+                else: 
+                    sampleri.pt_rejected += 1
 
     def ensemble_step(self):
         for Tindex, sampler_list in self.sampler_dictionary.items():
