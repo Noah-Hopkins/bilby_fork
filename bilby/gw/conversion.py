@@ -928,28 +928,33 @@ def two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_
         whether eos is valid or not
 
     """
-    eos_check = True 
-    if causal == 0:
-        eos = lalsim_SimNeutronStarEOS2PieceStaticPolytrope(
-                param1, param2)
-    else:
-        eos = lalsim_SimNeutronStarEOS2PieceCausalAnalytic(
-                param1, log10_pressure1_cgs - 1., param2)
-    #family = 'fake'
-    passing_parameters = {'logpc1': logpc1, 'logpc2': logpc2, 'luminosity_distance': luminosity_distance}
-    passing_parameters, added_keys = generate_component_masses_from_central_pressures(passing_parameters, added_keys, eos)
-    mass_1_source, mass_2_source, mass_1, mass_2 = passing_parameters['mass_1_source'], passing_parameters['mass_2_source'], passing_parameters['mass_1'], passing_parameters['mass_2']
-    if lalsim_SimNeutronStarEOS2PDViableFamilyCheck(
-            param1, log10_pressure1_cgs - 1., param2, causal) != 0:
+    eos_check = True
+    if log10_pressure1_cgs >= log10_pressure2_cgs:
         lambda_1 = 0.0
         lambda_2 = 0.0
         eos_check = False
-    else:
-        try: 
-            lambda_1, lambda_2, eos_check = neutron_star_family_physical_check(eos, mass_1_source, mass_2_source)
-        except: 
-            print(f"The issue happened when param1 is {param1}, param2 is {param2}, mass_1_source is {mass_1_source}, and mass_2_source is {mass_2_source}.")
-            raise("Something, probably the XLAL error from interp.c:150, has occured.")
+    else: 
+        if causal == 0:
+            eos = lalsim_SimNeutronStarEOS2PieceStaticPolytrope(
+                    param1, param2)
+        else:
+            eos = lalsim_SimNeutronStarEOS2PieceCausalAnalytic(
+                    param1, log10_pressure1_cgs - 1., param2)
+        #family = 'fake'
+        passing_parameters = {'logpc1': logpc1, 'logpc2': logpc2, 'luminosity_distance': luminosity_distance}
+        passing_parameters, added_keys = generate_component_masses_from_central_pressures(passing_parameters, added_keys, eos)
+        mass_1_source, mass_2_source, mass_1, mass_2 = passing_parameters['mass_1_source'], passing_parameters['mass_2_source'], passing_parameters['mass_1'], passing_parameters['mass_2']
+        if lalsim_SimNeutronStarEOS2PDViableFamilyCheck(
+                param1, log10_pressure1_cgs - 1., param2, causal) != 0:
+            lambda_1 = 0.0
+            lambda_2 = 0.0
+            eos_check = False
+        else:
+            try: 
+                lambda_1, lambda_2, eos_check = neutron_star_family_physical_check(eos, mass_1_source, mass_2_source)
+            except: 
+                print(f"The issue happened when param1 is {param1}, param2 is {param2}, mass_1_source is {mass_1_source}, and mass_2_source is {mass_2_source}.")
+                raise("Something, probably the XLAL error from interp.c:150, has occured.")
 
     return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, added_keys, eos_check
 
