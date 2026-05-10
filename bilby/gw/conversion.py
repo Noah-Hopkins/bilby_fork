@@ -292,20 +292,24 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
     """
     Takes in converted_parameters array, added_keys list of any keys previously added to 
     converted_parameters, and equation of state. Calculates source frame and detector frame 
-    component masses based component log central pressures if component log central pressures are 
-    present. Requires luminosity_distance to be in converted_parameters for the calculation 
-    of detector frame component masses to work. Does nothing if all inputs are provided, 
-    but component log central pressures are not in converted_parameters. If no eos is provided, 
-    then the function will be exited around the beginning after printing a message about 
-    the issue. 
+    component masses based on component log central pressures if component log central pressures are 
+    present. If component log central pressures are not present, but pressure_scale and pressure_ratio 
+    are present, then it uses these to calculate component log central pressures and then calculates 
+    the source frame and detector frame masses from those. Requires luminosity_distance to be in 
+    converted_parameters for the calculation of detector frame component masses to work. Does 
+    nothing if all inputs are provided, but component log central pressures are not in 
+    converted_parameters. If no eos is provided, then the function will be exited around the 
+    beginning after printing a message about the issue. 
 
     Input log central pressures are expected in cgs. Output masses are in solar masses. 
+    Inputs for pressure_scale and pressure_ratio seem to be the same for cgs and SI. 
     
     Parameters
     ----------
     converted_parameters: dict
         dictionary of parameter values that the function uses to produce component masses if luminosity_distance 
-        and log central pressures are included. 
+        and log central pressures are included and uses to produce component masses and component log central 
+        pressures if are included instead
     added_keys: list
         keys which were added to converted_parameters during the operation of previous functions
     eos: lalsim swig-wrapped eos object
@@ -315,7 +319,9 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
     -------
     converted_parameters: dict
         dictionary of the required parameters, now including source frame and detector frame component masses
-        along with redshift if there were component log central pressures going in
+        along with redshift if there were component log central pressures going in and including all of these
+        (including component log central pressures) if pressure_scale and pressure_ratio were included going in
+        and component log central pressures were not
     added_keys: list
         keys which are added to converted_parameters during function call
 
@@ -348,7 +354,7 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
                 if key not in original_keys]
         
     elif 'pressure_scale' in converted_parameters.keys() and 'pressure_ratio' in converted_parameters.keys():
-        converted_parameters = pressure_scale_and_ratio_to_log_components(converted_parameters)
+        converted_parameters = pressure_scale_and_ratio_to_log_components(converted_parameters) 
 
         converted_parameters['mass_1_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['logpc1']-1), family)/ solar_mass
         converted_parameters['redshift'] =\
@@ -372,6 +378,18 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
 def pressure_scale_and_ratio_to_log_components(sample): 
     """
     Calculates log component central pressures based on the mimimum pressure, the pressure scale, and the pressure ratio. 
+
+    Parameters
+    ----------
+    sample: dict
+        Dictionary of parameters for the conversion. Needs to include the parameters pressure_scale and pressure_ratio (cgs 
+        units were expected when writing the function, but pressure_scale and pressure_ratio seem to be the same in SI as in cgs). 
+
+    Returns
+    -------
+    out: dict
+        A new dictionary of parameters, now with logpc1 and logpc2 included. 
+
     """
     out = sample.copy()
     # These print statements will need to be removed later. 
@@ -1030,13 +1048,18 @@ def two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_
         or the sampled causal model params v1, v2
     log10_pressure1_cgs: float
         dividing pressures in piecewise polytrope model or causal model
-    logpc1, logpc2: float
-        component pressures in log cgs
     causal: bool
         whether or not to use causal polytrope model
         1 - causal; 0 - not causal
     luminosity_distance: float
         The luminosity distance in megaparsecs FIXME 
+    logpc1, logpc2: float
+        component pressures in log cgs
+    pressure_scale: float
+        The value of logpc1 with some minimum value subtracted out
+    pressure_ratio: float
+        The ratio of logpc2, after it has had some minimum value subtracted
+        out, to logpc1, after it has had the same minimum value subtracted out
 
     Returns
     -------
@@ -1044,6 +1067,16 @@ def two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_
         tidal deformability parameter associated with mass 1
     lambda_2: float
         tidal deformability parameter associated with mass 2
+    mass_1_source: float
+        source frame mass for object of greater mass
+    mass_2_source: float
+        source frame mass for object of lesser mass
+    mass_1: float
+        detector frame mass for object of greater mass
+    mass_2: float
+        detector frame mass for object of lesser mass
+    logpc1: float
+        log component central pressure for object of greater mass
     eos_check: bool
         whether eos is valid or not
 
