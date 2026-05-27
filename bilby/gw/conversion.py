@@ -334,7 +334,7 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
         return converted_parameters, added_keys
 
     if 'logpc1' in converted_parameters.keys() and 'logpc2' in converted_parameters.keys(): 
-        converted_parameters['mass_1_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['logpc1']-1), family)/ solar_mass
+        converted_parameters['mass_1_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['logpc1']-1.), family)/ solar_mass
         converted_parameters['redshift'] =\
             luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
         converted_parameters['mass_1'] =\
@@ -342,7 +342,7 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
         added_keys = added_keys + [key for key in converted_parameters.keys()
                       if key not in original_keys]
         
-        converted_parameters['mass_2_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['logpc2']-1), family) / solar_mass
+        converted_parameters['mass_2_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['logpc2']-1.), family) / solar_mass
         converted_parameters['redshift'] =\
             luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
         converted_parameters['mass_2'] =\
@@ -353,7 +353,7 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
     elif 'pressure_scale' in converted_parameters.keys() and 'pressure_ratio' in converted_parameters.keys():
         converted_parameters = pressure_scale_and_ratio_to_log_components(converted_parameters) 
 
-        converted_parameters['mass_1_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['logpc1']-1), family)/ solar_mass
+        converted_parameters['mass_1_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['logpc1']-1.), family)/ solar_mass
         converted_parameters['redshift'] =\
             luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
         converted_parameters['mass_1'] =\
@@ -361,7 +361,7 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
         added_keys = added_keys + [key for key in converted_parameters.keys()
                       if key not in original_keys]
 
-        converted_parameters['mass_2_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['logpc2']-1), family) / solar_mass
+        converted_parameters['mass_2_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['logpc2']-1.), family) / solar_mass
         converted_parameters['redshift'] =\
             luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
         converted_parameters['mass_2'] =\
@@ -370,7 +370,7 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
                       if key not in original_keys]
 
     elif 'ns_central_log10_pressure_1' in converted_parameters.keys() and 'ns_central_log10_pressure_2' in converted_parameters.keys():
-        converted_parameters['mass_1_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['ns_central_log10_pressure_1']-1), family)/ solar_mass
+        converted_parameters['mass_1_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['ns_central_log10_pressure_1']-1.), family)/ solar_mass
         converted_parameters['redshift'] =\
             luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
         converted_parameters['mass_1'] =\
@@ -378,7 +378,7 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
         added_keys = added_keys + [key for key in converted_parameters.keys()
                       if key not in original_keys]
 
-        converted_parameters['mass_2_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['ns_central_log10_pressure_2']-1), family) / solar_mass
+        converted_parameters['mass_2_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['ns_central_log10_pressure_2']-1.), family) / solar_mass
         converted_parameters['redshift'] =\
             luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
         converted_parameters['mass_2'] =\
@@ -389,7 +389,7 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
     elif 'ns_central_pressure_scale' in converted_parameters.keys() and 'ns_central_pressure_ratio' in converted_parameters.keys():
         converted_parameters = ns_pressure_scale_and_ratio_to_log_components(converted_parameters)
 
-        converted_parameters['mass_1_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['ns_central_log10_pressure_1']-1), family)/ solar_mass
+        converted_parameters['mass_1_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['ns_central_log10_pressure_1']-1.), family)/ solar_mass
         converted_parameters['redshift'] =\
             luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
         converted_parameters['mass_1'] =\
@@ -397,7 +397,7 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
         added_keys = added_keys + [key for key in converted_parameters.keys()
                       if key not in original_keys]
 
-        converted_parameters['mass_2_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['ns_central_log10_pressure_2']-1), family) / solar_mass
+        converted_parameters['mass_2_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['ns_central_log10_pressure_2']-1.), family) / solar_mass
         converted_parameters['redshift'] =\
             luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
         converted_parameters['mass_2'] =\
@@ -670,13 +670,13 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                     lumin_dist = converted_parameters['luminosity_distance']
                     if type(lumin_dist) == float:
                         lumin_dist = np.ones(max_len) * lumin_dist
-                    def _call(pg_0, pg_1, pg_2, ns_logp_1, ns_logp_2, lumin_dist):
+                    def _call(pg_0, pg_1, pg_2, ns_logp_1, ns_logp_2, lum_dist):
                         converted_parameters['eos_polytrope_gamma_0']               = pg_0
                         converted_parameters['eos_polytrope_gamma_1']               = pg_1
                         converted_parameters['eos_polytrope_gamma_2']               = pg_2
                         converted_parameters['ns_central_log10_pressure_1']         = ns_logp_1
                         converted_parameters['ns_central_log10_pressure_2']         = ns_logp_2
-                        converted_parameters['luminosity_distance']                 = lumin_dist
+                        converted_parameters['luminosity_distance']                 = lum_dist
                         converted_parameters['mass_1_source']                       = None
                         converted_parameters['mass_2_source']                       = None
                         converted_parameters['mass_1']                              = None
@@ -737,13 +737,13 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                     lumin_dist = converted_parameters['luminosity_distance']
                     if type(lumin_dist) == float:
                         lumin_dist = np.ones(max_len) * lumin_dist
-                    def _call(pg_0, pg_1, pg_2, ns_pressure_scale, ns_pressure_ratio, lumin_dist):
+                    def _call(pg_0, pg_1, pg_2, ns_pressure_scale, ns_pressure_ratio, lum_dist):
                         converted_parameters['eos_polytrope_gamma_0']               = pg_0
                         converted_parameters['eos_polytrope_gamma_1']               = pg_1
                         converted_parameters['eos_polytrope_gamma_2']               = pg_2
                         converted_parameters['ns_central_pressure_scale']      = ns_pressure_scale
                         converted_parameters['ns_central_pressure_ratio']      = ns_pressure_ratio
-                        converted_parameters['luminosity_distance']                 = lumin_dist
+                        converted_parameters['luminosity_distance']                 = lum_dist
                         converted_parameters['mass_1_source']                       = None
                         converted_parameters['mass_2_source']                       = None
                         converted_parameters['mass_1']                              = None
@@ -782,7 +782,6 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                     ]
         for key in eos_keys:
             val = converted_parameters[key]
-        # squeeze length-1 arrays to scalars
             if np.ndim(val) == 0 or (hasattr(val, '__len__') and len(val) == 1):
                 converted_parameters[key] = float(np.squeeze(val))
                 float_eos_params[key] = converted_parameters[key]
@@ -837,23 +836,16 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                     'eos_2p_polytrope_gamma_1',
                     'logpc1', 'logpc2']
         for key in eos_keys:
-            try:
-                if (len(converted_parameters[key]) > max_len):
-                    max_len = len(converted_parameters[key])
-            except TypeError:
+            val = converted_parameters[key]
+            if np.ndim(val) == 0 or (hasattr(val, '__len__') and len(val) == 1):
+                converted_parameters[key] = float(np.squeeze(val))
                 float_eos_params[key] = converted_parameters[key]
+            elif hasattr(val, '__len__') and len(val) > max_len:
+                max_len = len(val)
         if len(float_eos_params) == len(eos_keys):  # case where all eos params are floats (pinned)
             try:
                 converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['mass_1'], converted_parameters['mass_2'], added_keys, converted_parameters['eos_check'] = \
-                    two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(
-                        converted_parameters['eos_2p_polytrope_gamma_0'],
-                        35.5,
-                        converted_parameters['eos_2p_polytrope_gamma_1'],
-                        logpc1 = converted_parameters['logpc1'],
-                        logpc2 = converted_parameters['logpc2'],
-                        causal=0,
-                        luminosity_distance = converted_parameters['luminosity_distance'],
-                        added_keys = added_keys)
+                    two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(converted_parameters, added_keys)
             except Exception:
                 converted_parameters['lambda_1'] = 0.0
                 converted_parameters['lambda_2'] = 0.0
@@ -873,14 +865,20 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
             if type(lumin_dist) == float:
                 lumin_dist = np.ones(max_len) * lumin_dist
             def _call(pg_0, pg_1, log_pc1, log_pc2, lum_dist):
+                converted_parameters['eos_2p_polytrope_gamma_0']            = pg_0
+                converted_parameters['eos_2p_polytrope_gamma_1']            = pg_1
+                converted_parameters['logpc1']                              = log_pc1
+                converted_parameters['logpc2']                              = log_pc2
+                converted_parameters['luminosity_distance']                 = lum_dist
+                converted_parameters['mass_1_source']                       = None
+                converted_parameters['mass_2_source']                       = None
+                converted_parameters['mass_1']                              = None
+                converted_parameters['mass_2']                              = None
+                converted_parameters['pressure_scale']                      = None
+                converted_parameters['pressure_ratio']                      = None
                 try:
                     lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, _, eos_check = \
-                        two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(
-                            pg_0, 35.5, pg_1,
-                            logpc1=log_pc1, logpc2=log_pc2,
-                            causal=0,
-                            luminosity_distance=lum_dist,
-                            added_keys=added_keys)
+                        two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(converted_parameters, added_keys)
                 except Exception:
                     return 0.0, 0.0, 1.4, 1.4, 1.4, 1.4, False
                 return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, eos_check
@@ -902,23 +900,16 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                     'eos_2p_polytrope_gamma_1',
                     'pressure_scale', 'pressure_ratio']
         for key in eos_keys:
-            try:
-                if (len(converted_parameters[key]) > max_len):
-                    max_len = len(converted_parameters[key])
-            except TypeError:
+            val = converted_parameters[key]
+            if np.ndim(val) == 0 or (hasattr(val, '__len__') and len(val) == 1):
+                converted_parameters[key] = float(np.squeeze(val))
                 float_eos_params[key] = converted_parameters[key]
+            elif hasattr(val, '__len__') and len(val) > max_len:
+                max_len = len(val)
         if len(float_eos_params) == len(eos_keys):  # case where all eos params are floats (pinned)
             try:
                 converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['mass_1'], converted_parameters['mass_2'], converted_parameters['logpc1'], converted_parameters['logpc2'], added_keys, converted_parameters['eos_check'] = \
-                    two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(
-                        converted_parameters['eos_2p_polytrope_gamma_0'],
-                        35.5,
-                        converted_parameters['eos_2p_polytrope_gamma_1'],
-                        pressure_scale = converted_parameters['pressure_scale'],
-                        pressure_ratio = converted_parameters['pressure_ratio'],
-                        causal=0,
-                        luminosity_distance = converted_parameters['luminosity_distance'],
-                        added_keys = added_keys)
+                    two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(converted_parameters, added_keys)
             except Exception:
                 converted_parameters['lambda_1'] = 0.0
                 converted_parameters['lambda_2'] = 0.0
@@ -940,14 +931,20 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
             if type(lumin_dist) == float:
                 lumin_dist = np.ones(max_len) * lumin_dist
             def _call(pg_0, pg_1, pressure_scale, pressure_ratio, lum_dist):
+                converted_parameters['eos_2p_polytrope_gamma_0']            = pg_0
+                converted_parameters['eos_2p_polytrope_gamma_1']            = pg_1
+                converted_parameters['pressure_scale']                      = pressure_scale
+                converted_parameters['pressure_ratio']                      = pressure_ratio
+                converted_parameters['luminosity_distance']                 = lum_dist
+                converted_parameters['mass_1_source']                       = None
+                converted_parameters['mass_2_source']                       = None
+                converted_parameters['mass_1']                              = None
+                converted_parameters['mass_2']                              = None
+                converted_parameters['logpc1']                              = None
+                converted_parameters['logpc2']                              = None
                 try:
                     lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, logpc1, logpc2, _, eos_check = \
-                        two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(
-                            pg_0, 35.5, pg_1,
-                            pressure_scale=pressure_scale, pressure_ratio=pressure_ratio,
-                            causal=0,
-                            luminosity_distance=lum_dist,
-                            added_keys=added_keys)
+                        two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(converted_parameters, added_keys)
                 except Exception:
                     return 0.0, 0.0, 1.4, 1.4, 1.4, 1.4, 0.0, 0.0, False
                 return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, logpc1, logpc2, eos_check
@@ -1269,8 +1266,7 @@ def polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_
             return lambda_1, lambda_2, eos_check
 
 
-def two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(
-        param1 = 3, log10_pressure1_cgs = 35.5, param2 = 3, causal = 0, luminosity_distance = 57.628867, logpc1 = None, logpc2 = None, pressure_scale = None, pressure_ratio = None, added_keys = []):
+def two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(converted_parameters, added_keys):
     """  
     Converts parameters from sampled dynamic piecewise polytrope parameters
         to component tidal deformablity parameters and converts from 
@@ -1320,37 +1316,51 @@ def two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_
         whether eos is valid or not
 
     """
+    log10_pressure1_cgs = 35.5
+    causal = 0
     eos_check = True
     if causal == 0:
         eos = lalsim_SimNeutronStarEOS2PieceStaticPolytrope(
-                param1, param2)
+                converted_parameters['eos_2p_polytrope_gamma_0'], converted_parameters['eos_2p_polytrope_gamma_1'])
     else:
         eos = lalsim_SimNeutronStarEOS2PieceCausalAnalytic(
-                param1, log10_pressure1_cgs - 1., param2)
-    family = lalsim_CreateSimNeutronStarFamily(eos)
-    if logpc1 is not None:
-        passing_parameters = {'logpc1': logpc1, 'logpc2': logpc2, 'luminosity_distance': luminosity_distance}
-    else: 
-        passing_parameters = {'pressure_scale': pressure_scale, 'pressure_ratio': pressure_ratio, 'luminosity_distance': luminosity_distance}
-    passing_parameters, added_keys = generate_component_masses_from_central_pressures(passing_parameters, added_keys, family)
-    mass_1_source, mass_2_source, mass_1, mass_2 = passing_parameters['mass_1_source'], passing_parameters['mass_2_source'], passing_parameters['mass_1'], passing_parameters['mass_2']
+                converted_parameters['eos_2p_polytrope_gamma_0'], log10_pressure1_cgs - 1., converted_parameters['eos_2p_polytrope_gamma_1'])
     if lalsim_SimNeutronStarEOS2PDViableFamilyCheck(
-            param1, log10_pressure1_cgs - 1., param2, causal) != 0:
-        lambda_1 = 0.0
-        lambda_2 = 0.0
-        eos_check = False
+            converted_parameters['eos_2p_polytrope_gamma_0'], log10_pressure1_cgs - 1., converted_parameters['eos_2p_polytrope_gamma_1'], causal) != 0:
+        if 'logpc1' not in converted_parameters.keys():
+            lambda_1 = 0.0
+            lambda_2 = 0.0
+            mass_1_source = 1.4
+            mass_2_source = 1.4
+            mass_1 = 1.4
+            mass_2 = 1.4
+            logpc1 = 0.0
+            logpc2 = 0.0
+            eos_check = False
+            return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, logpc1, logpc2, added_keys, eos_check
+        else:
+            lambda_1 = 0.0
+            lambda_2 = 0.0
+            mass_1_source = 1.4
+            mass_2_source = 1.4
+            mass_1 = 1.4
+            mass_2 = 1.4
+            eos_check = False
+            return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, added_keys, eos_check
     else:
-        try: 
-            lambda_1, lambda_2, eos_check = neutron_star_family_physical_check(eos, family, mass_1_source, mass_2_source)
-        except: 
-            print(f"The issue happened when param1 is {param1}, param2 is {param2}, mass_1_source is {mass_1_source}, and mass_2_source is {mass_2_source}.")
-            raise("Something, probably the XLAL error from interp.c:150, has occured.")
-
-    if logpc1 is not None:
-        return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, added_keys, eos_check
-    else: 
+        family = lalsim_CreateSimNeutronStarFamily(eos)
+        if 'logpc1' not in converted_parameters.keys() or converted_parameters['logpc1'] is None:
+            passing_parameters = {'pressure_scale': converted_parameters['pressure_scale'], 'pressure_ratio': converted_parameters['pressure_ratio'], 'luminosity_distance': converted_parameters['luminosity_distance']}
+        else:
+            passing_parameters = {'logpc1': converted_parameters['logpc1'], 'logpc2': converted_parameters['logpc2'], 'luminosity_distance': converted_parameters['luminosity_distance']}
+        passing_parameters, added_keys = generate_component_masses_from_central_pressures(passing_parameters, added_keys, family)
+        mass_1_source, mass_2_source, mass_1, mass_2 = passing_parameters['mass_1_source'], passing_parameters['mass_2_source'], passing_parameters['mass_1'], passing_parameters['mass_2']
+        lambda_1, lambda_2, eos_check = neutron_star_family_physical_check(eos, family, mass_1_source, mass_2_source)
+    if 'logpc1' not in converted_parameters.keys() or converted_parameters['logpc1'] is None:
         logpc1, logpc2 = passing_parameters['logpc1'], passing_parameters['logpc2']
         return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, logpc1, logpc2, added_keys, eos_check
+    else: 
+        return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, added_keys, eos_check
 
 
 def neutron_star_family_physical_check(eos, family, mass_1_source, mass_2_source):
