@@ -580,14 +580,15 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
     elif 'eos_polytrope_gamma_0' in converted_parameters.keys() and 'eos_polytrope_log10_pressure_1' in converted_parameters.keys():
         float_eos_params = {}
         max_len = 1
-        if 'mass_1_source' in converted_parameters.keys():
+        if 'mass_1' in converted_parameters.keys():
             converted_parameters = generate_source_frame_parameters(converted_parameters)
             eos_keys = ['eos_polytrope_gamma_0',
                         'eos_polytrope_gamma_1',
                         'eos_polytrope_gamma_2',
                         'eos_polytrope_log10_pressure_1',
                         'eos_polytrope_log10_pressure_2',
-                        'mass_1_source', 'mass_2_source']
+                        'mass_1_source',
+                        'mass_2_source']
             for key in eos_keys:
                 val = converted_parameters[key]
                 if np.ndim(val) == 0 or (hasattr(val, '__len__') and len(val) == 1):
@@ -598,7 +599,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
             if len(float_eos_params) == len(eos_keys):  # all scalars
                 try:
                     converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['eos_check'] = \
-                        polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys)
+                        polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
                 except Exception:
                     converted_parameters['lambda_1'] = 0.0
                     converted_parameters['lambda_2'] = 0.0 
@@ -623,7 +624,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                     converted_parameters['mass_2_source']                       = m2_s
                     try:
                         lambda_1, lambda_2, eos_check = \
-                            polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys)
+                            polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
                     except Exception:
                         return 0.0, 0.0, False
                     return lambda_1, lambda_2, eos_check
@@ -650,7 +651,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                 if len(float_eos_params) == len(eos_keys):  # all scalars
                     try:
                         converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['mass_1'], converted_parameters['mass_2'], added_keys, converted_parameters['eos_check'] = \
-                            polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys)
+                            polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
                     except Exception:
                         converted_parameters['lambda_1'] = 0.0
                         converted_parameters['lambda_2'] = 0.0
@@ -685,7 +686,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                         converted_parameters['ns_central_pressure_scale']           = None
                         try:
                             lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, _, eos_check = \
-                                polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys)
+                                polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
                         except Exception:
                             return 0.0, 0.0, 1.4, 1.4, 1.4, 1.4, False
                         return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, eos_check
@@ -715,7 +716,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                 if len(float_eos_params) == len(eos_keys):  # all scalars
                     try:
                         converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['mass_1'], converted_parameters['mass_2'], converted_parameters['ns_central_log10_pressure_1'], converted_parameters['ns_central_log10_pressure_2'], added_keys, converted_parameters['eos_check'] = \
-                            polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys)
+                            polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
                     except Exception:
                         converted_parameters['lambda_1'] = 0.0
                         converted_parameters['lambda_2'] = 0.0
@@ -752,7 +753,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                         converted_parameters['ns_central_log10_pressure_2']         = None
                         try:
                             lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, ns_logp1, ns_logp2, _, eos_check = \
-                                polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys)
+                                polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
                         except Exception:
                             return 0.0, 0.0, 1.4, 1.4, 1.4, 1.4, 0.0, 0.0, False
                         return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, ns_logp1, ns_logp2, eos_check
@@ -792,7 +793,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
             converted_parameters['eos_polytrope_scaled_pressure_2'])
             try:
                 converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['eos_check'] = \
-                    polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys)
+                    polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
             except Exception:
                 converted_parameters['lambda_1'] = 0.0
                 converted_parameters['lambda_2'] = 0.0
@@ -818,7 +819,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                 eos_logp1, eos_logp2 = log_pressure_reparameterization_conversion(scaled_pressure_ratio, scaled_pressure_2)
                 try:
                     lambda_1, lambda_2, eos_check = \
-                        polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys)
+                        polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
                 except Exception:
                     return 0.0, 0.0, False
                 return lambda_1, lambda_2, eos_check
@@ -845,7 +846,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
         if len(float_eos_params) == len(eos_keys):  # case where all eos params are floats (pinned)
             try:
                 converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['mass_1'], converted_parameters['mass_2'], added_keys, converted_parameters['eos_check'] = \
-                    two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(converted_parameters, added_keys)
+                    two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(converted_parameters, added_keys, causal = 0)
             except Exception:
                 converted_parameters['lambda_1'] = 0.0
                 converted_parameters['lambda_2'] = 0.0
@@ -878,7 +879,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                 converted_parameters['pressure_ratio']                      = None
                 try:
                     lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, _, eos_check = \
-                        two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(converted_parameters, added_keys)
+                        two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(converted_parameters, added_keys, causal = 0)
                 except Exception:
                     return 0.0, 0.0, 1.4, 1.4, 1.4, 1.4, False
                 return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, eos_check
@@ -909,7 +910,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
         if len(float_eos_params) == len(eos_keys):  # case where all eos params are floats (pinned)
             try:
                 converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['mass_1'], converted_parameters['mass_2'], converted_parameters['logpc1'], converted_parameters['logpc2'], added_keys, converted_parameters['eos_check'] = \
-                    two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(converted_parameters, added_keys)
+                    two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(converted_parameters, added_keys, causal = 0)
             except Exception:
                 converted_parameters['lambda_1'] = 0.0
                 converted_parameters['lambda_2'] = 0.0
@@ -944,7 +945,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                 converted_parameters['logpc2']                              = None
                 try:
                     lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, logpc1, logpc2, _, eos_check = \
-                        two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(converted_parameters, added_keys)
+                        two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(converted_parameters, added_keys, causal = 0)
                 except Exception:
                     return 0.0, 0.0, 1.4, 1.4, 1.4, 1.4, 0.0, 0.0, False
                 return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, logpc1, logpc2, eos_check
@@ -1145,7 +1146,7 @@ def spectral_params_to_lambda_1_lambda_2(gamma_0, gamma_1, gamma_2, gamma_3, mas
     return lambda_1, lambda_2, eos_check
 
 
-def polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys):
+def polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal):
     """
     Converts parameters from sampled dynamic piecewise polytrope parameters
         to component tidal deformablity parameters.
@@ -1179,7 +1180,6 @@ def polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_
     """
     eos_logp1 = converted_parameters['eos_polytrope_log10_pressure_1']
     eos_logp2 = converted_parameters['eos_polytrope_log10_pressure_2']
-    causal = 0
     eos_check = True
     if eos_logp1 >= eos_logp2:
         if 'mass_1_source' not in converted_parameters.keys():
@@ -1266,7 +1266,7 @@ def polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_
             return lambda_1, lambda_2, eos_check
 
 
-def two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(converted_parameters, added_keys):
+def two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(converted_parameters, added_keys, causal):
     """  
     Converts parameters from sampled dynamic piecewise polytrope parameters
         to component tidal deformablity parameters and converts from 
@@ -1317,7 +1317,6 @@ def two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_
 
     """
     log10_pressure1_cgs = 35.5
-    causal = 0
     eos_check = True
     if causal == 0:
         eos = lalsim_SimNeutronStarEOS2PieceStaticPolytrope(
