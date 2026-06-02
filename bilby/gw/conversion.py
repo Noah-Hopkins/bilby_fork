@@ -288,7 +288,7 @@ def convert_to_lal_binary_black_hole_parameters(parameters):
     return converted_parameters, added_keys
 
 
-def generate_component_masses_from_central_pressures(converted_parameters, added_keys, family = 'placeholder'): 
+def generate_component_masses_from_central_pressures(converted_parameters, added_keys, MIN_PRESSURE_cgs, family = 'placeholder'): 
     """
     Takes in converted_parameters array, added_keys list of any keys previously added to 
     converted_parameters, and equation of state. Calculates source frame and detector frame 
@@ -387,7 +387,7 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
                 if key not in original_keys]
 
     elif 'ns_central_pressure_scale' in converted_parameters.keys() and 'ns_central_pressure_ratio' in converted_parameters.keys():
-        converted_parameters = ns_pressure_scale_and_ratio_to_log_components(converted_parameters)
+        converted_parameters = ns_pressure_scale_and_ratio_to_log_components(converted_parameters, MIN_PRESSURE_cgs)
         
         converted_parameters['mass_1_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['ns_central_log10_pressure_1']-1.), family) / solar_mass
         converted_parameters['redshift'] =\
@@ -437,7 +437,7 @@ def pressure_scale_and_ratio_to_log_components(sample):
     return out
 
 
-def ns_pressure_scale_and_ratio_to_log_components(sample):
+def ns_pressure_scale_and_ratio_to_log_components(sample, MIN_PRESSURE_cgs):
     """
     Calculates log component central pressures based on the mimimum pressure, the pressure scale, and the pressure ratio.
 
@@ -454,7 +454,6 @@ def ns_pressure_scale_and_ratio_to_log_components(sample):
 
     """
     out = sample.copy()
-    MIN_PRESSURE_cgs = 33.78923338369551
     out['ns_central_log10_pressure_1'] = MIN_PRESSURE_cgs + out['ns_central_pressure_scale']
     out['ns_central_log10_pressure_2'] = MIN_PRESSURE_cgs + out['ns_central_pressure_ratio'] * out['ns_central_pressure_scale']
     #print("out after")
@@ -1241,15 +1240,19 @@ def polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_
             min_mass = lalsim_SimNeutronStarFamMinimumMass(family)
             MIN_PRESSURE_SI = np.log10(lalsim_SimNeutronStarCentralPressure(min_mass, family))
             MIN_PRESSURE_cgs = MIN_PRESSURE_SI + 1.
-            ns_logp1 = MIN_PRESSURE_cgs + converted_parameters['ns_central_pressure_scale']
-            ns_logp2 = MIN_PRESSURE_cgs + (converted_parameters['ns_central_pressure_ratio'] * converted_parameters['ns_central_pressure_scale'])
+            if 'ns_central_pressure_scale' in converted_parameters.keys():
+                ns_logp1 = MIN_PRESSURE_cgs + converted_parameters['ns_central_pressure_scale']
+                ns_logp2 = MIN_PRESSURE_cgs + (converted_parameters['ns_central_pressure_ratio'] * converted_parameters['ns_central_pressure_scale'])
+            elif 'ns_central_log10_pressure_1' in converted_parameters.keys():
+                ns_logp1 = converted_parameters['ns_central_log10_pressure_1']
+                ns_logp2 = converted_parameters['ns_central_log10_pressure_2']
             if (MIN_PRESSURE_cgs < ns_logp1 < MAX_PRESSURE_cgs) and (MIN_PRESSURE_cgs < ns_logp2 < MAX_PRESSURE_cgs):
                 if 'mass_1_source' not in converted_parameters.keys():
                     if 'ns_central_log10_pressure_1' not in converted_parameters.keys():
                         passing_parameters = {'ns_central_pressure_scale': converted_parameters['ns_central_pressure_scale'], 'ns_central_pressure_ratio': converted_parameters['ns_central_pressure_ratio'], 'luminosity_distance': converted_parameters['luminosity_distance']}
                     else:
                         passing_parameters = {'ns_central_log10_pressure_1': converted_parameters['ns_central_log10_pressure_1'], 'ns_central_log10_pressure_2': converted_parameters['ns_central_log10_pressure_2'], 'luminosity_distance': converted_parameters['luminosity_distance']}
-                    passing_parameters, added_keys = generate_component_masses_from_central_pressures(passing_parameters, added_keys, family)
+                    passing_parameters, added_keys = generate_component_masses_from_central_pressures(passing_parameters, added_keys, MIN_PRESSURE_cgs, family)
                     mass_1_source, mass_2_source, mass_1, mass_2 = passing_parameters['mass_1_source'], passing_parameters['mass_2_source'], passing_parameters['mass_1'], passing_parameters['mass_2']
                     lambda_1, lambda_2, eos_check = neutron_star_family_physical_check(eos, family, mass_1_source, mass_2_source)
                 else:
@@ -1374,11 +1377,12 @@ def two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_
             return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, added_keys, eos_check
     else:
         family = lalsim_CreateSimNeutronStarFamily(eos)
+        MIN_PRESSURE_cgs = 0.0
         if 'logpc1' not in converted_parameters.keys() or converted_parameters['logpc1'] is None:
             passing_parameters = {'pressure_scale': converted_parameters['pressure_scale'], 'pressure_ratio': converted_parameters['pressure_ratio'], 'luminosity_distance': converted_parameters['luminosity_distance']}
         else:
             passing_parameters = {'logpc1': converted_parameters['logpc1'], 'logpc2': converted_parameters['logpc2'], 'luminosity_distance': converted_parameters['luminosity_distance']}
-        passing_parameters, added_keys = generate_component_masses_from_central_pressures(passing_parameters, added_keys, family)
+        passing_parameters, added_keys = generate_component_masses_from_central_pressures(passing_parameters, added_keys, MIN_PRESSURE_cgs, family)
         mass_1_source, mass_2_source, mass_1, mass_2 = passing_parameters['mass_1_source'], passing_parameters['mass_2_source'], passing_parameters['mass_1'], passing_parameters['mass_2']
         lambda_1, lambda_2, eos_check = neutron_star_family_physical_check(eos, family, mass_1_source, mass_2_source)
     if 'logpc1' not in converted_parameters.keys() or converted_parameters['logpc1'] is None:
