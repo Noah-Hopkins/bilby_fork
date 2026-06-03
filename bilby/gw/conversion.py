@@ -288,7 +288,7 @@ def convert_to_lal_binary_black_hole_parameters(parameters):
     return converted_parameters, added_keys
 
 
-def generate_component_masses_from_central_pressures(converted_parameters, added_keys, MIN_PRESSURE_cgs, family = 'placeholder'): 
+def generate_component_masses_from_central_pressures(converted_parameters, added_keys, eos = 'placeholder', family = 'placeholder'): 
     """
     Takes in converted_parameters array, added_keys list of any keys previously added to 
     converted_parameters, and equation of state. Calculates source frame and detector frame 
@@ -329,83 +329,115 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
 
     original_keys = list(converted_parameters.keys())
 
+    if eos == 'placeholder':
+        print("No EOS input selected. Without a EOS input masses cannot be found from pressures. ")
+        return converted_parameters, added_keys
+
     if family == 'placeholder':
         print("No family input selected. Without a family input masses cannot be found from pressures. ")
         return converted_parameters, added_keys
 
     if 'logpc1' in converted_parameters.keys() and 'logpc2' in converted_parameters.keys(): 
-        converted_parameters['mass_1_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['logpc1']-1.), family)/ solar_mass
-        converted_parameters['redshift'] =\
-            luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
-        converted_parameters['mass_1'] =\
+        lambda_1, lambda_2, eos_check = neutron_star_family_physical_check_in_central_pressure(eos, family, 10**(converted_parameters['logpc1']-1.), 10**(converted_parameters['logpc2']-1.))
+
+        if eos_check == True:
+            converted_parameters['mass_1_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['logpc1']-1.), family)/ solar_mass
+            converted_parameters['redshift'] =\
+                luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
+            converted_parameters['mass_1'] =\
                 converted_parameters['mass_1_source'] * (1 + converted_parameters['redshift'])
-        added_keys = added_keys + [key for key in converted_parameters.keys()
-                      if key not in original_keys]
+            added_keys = added_keys + [key for key in converted_parameters.keys()
+                        if key not in original_keys]
         
-        converted_parameters['mass_2_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['logpc2']-1.), family) / solar_mass
-        converted_parameters['redshift'] =\
-            luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
-        converted_parameters['mass_2'] =\
+            converted_parameters['mass_2_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['logpc2']-1.), family) / solar_mass
+            converted_parameters['redshift'] =\
+                luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
+            converted_parameters['mass_2'] =\
                 converted_parameters['mass_2_source'] * (1 + converted_parameters['redshift'])
-        added_keys = added_keys + [key for key in converted_parameters.keys()
-                if key not in original_keys]
+            added_keys = added_keys + [key for key in converted_parameters.keys()
+                        if key not in original_keys]
+        else:
+            added_keys = added_keys + [key for key in converted_parameters.keys()
+                        if key not in original_keys]
+            return converted_parameters, added_keys, lambda_1, lambda_2, eos_check
         
     elif 'pressure_scale' in converted_parameters.keys() and 'pressure_ratio' in converted_parameters.keys():
         converted_parameters = pressure_scale_and_ratio_to_log_components(converted_parameters) 
 
-        converted_parameters['mass_1_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['logpc1']-1.), family)/ solar_mass
-        converted_parameters['redshift'] =\
-            luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
-        converted_parameters['mass_1'] =\
+        lambda_1, lambda_2, eos_check = neutron_star_family_physical_check_in_central_pressure(eos, family, 10**(converted_parameters['logpc1']-1.), 10**(converted_parameters['logpc2']-1.))
+        
+        if eos_check == True:
+            converted_parameters['mass_1_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['logpc1']-1.), family)/ solar_mass
+            converted_parameters['redshift'] =\
+                luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
+            converted_parameters['mass_1'] =\
                 converted_parameters['mass_1_source'] * (1 + converted_parameters['redshift'])
-        added_keys = added_keys + [key for key in converted_parameters.keys()
-                      if key not in original_keys]
+            added_keys = added_keys + [key for key in converted_parameters.keys()
+                        if key not in original_keys]
 
-        converted_parameters['mass_2_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['logpc2']-1.), family) / solar_mass
-        converted_parameters['redshift'] =\
-            luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
-        converted_parameters['mass_2'] =\
+            converted_parameters['mass_2_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['logpc2']-1.), family) / solar_mass
+            converted_parameters['redshift'] =\
+                luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
+            converted_parameters['mass_2'] =\
                 converted_parameters['mass_2_source'] * (1 + converted_parameters['redshift'])
-        added_keys = added_keys + [key for key in converted_parameters.keys()
-                      if key not in original_keys]
+            added_keys = added_keys + [key for key in converted_parameters.keys()
+                        if key not in original_keys]
+        else:
+            added_keys = added_keys + [key for key in converted_parameters.keys()
+                        if key not in original_keys]
+            return converted_parameters, added_keys, lambda_1, lambda_2, eos_check
 
     elif 'ns_central_log10_pressure_1' in converted_parameters.keys() and 'ns_central_log10_pressure_2' in converted_parameters.keys():
-        converted_parameters['mass_1_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['ns_central_log10_pressure_1']-1.), family)/ solar_mass
-        converted_parameters['redshift'] =\
-            luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
-        converted_parameters['mass_1'] =\
+        lambda_1, lambda_2, eos_check = neutron_star_family_physical_check_in_central_pressure(eos, family, 10**(converted_parameters['ns_central_log10_pressure_1']-1.), 10**(converted_parameters['ns_central_log10_pressure_2']-1.))
+
+        if eos_check == True:
+            converted_parameters['mass_1_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['ns_central_log10_pressure_1']-1.), family)/ solar_mass
+            converted_parameters['redshift'] =\
+                luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
+            converted_parameters['mass_1'] =\
                 converted_parameters['mass_1_source'] * (1 + converted_parameters['redshift'])
-        added_keys = added_keys + [key for key in converted_parameters.keys()
+            added_keys = added_keys + [key for key in converted_parameters.keys()
                       if key not in original_keys]
 
-        converted_parameters['mass_2_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['ns_central_log10_pressure_2']-1.), family) / solar_mass
-        converted_parameters['redshift'] =\
-            luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
-        converted_parameters['mass_2'] =\
+            converted_parameters['mass_2_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['ns_central_log10_pressure_2']-1.), family) / solar_mass
+            converted_parameters['redshift'] =\
+                luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
+            converted_parameters['mass_2'] =\
                 converted_parameters['mass_2_source'] * (1 + converted_parameters['redshift'])
-        added_keys = added_keys + [key for key in converted_parameters.keys()
-                if key not in original_keys]
+            added_keys = added_keys + [key for key in converted_parameters.keys()
+                    if key not in original_keys]
+        else:
+            added_keys = added_keys + [key for key in converted_parameters.keys()
+                        if key not in original_keys]
+            return converted_parameters, added_keys, lambda_1, lambda_2, eos_check
 
     elif 'ns_central_pressure_scale' in converted_parameters.keys() and 'ns_central_pressure_ratio' in converted_parameters.keys():
-        converted_parameters = ns_pressure_scale_and_ratio_to_log_components(converted_parameters, MIN_PRESSURE_cgs)
+        converted_parameters = ns_pressure_scale_and_ratio_to_log_components(converted_parameters, family)
         
-        converted_parameters['mass_1_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['ns_central_log10_pressure_1']-1.), family) / solar_mass
-        converted_parameters['redshift'] =\
-            luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
-        converted_parameters['mass_1'] =\
+        lambda_1, lambda_2, eos_check = neutron_star_family_physical_check_in_central_pressure(eos, family, 10**(converted_parameters['ns_central_log10_pressure_1']-1.), 10**(converted_parameters['ns_central_log10_pressure_2']-1.))
+        
+        if eos_check == True:
+            converted_parameters['mass_1_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['ns_central_log10_pressure_1']-1.), family) / solar_mass
+            converted_parameters['redshift'] =\
+                luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
+            converted_parameters['mass_1'] =\
                 converted_parameters['mass_1_source'] * (1 + converted_parameters['redshift'])
-        added_keys = added_keys + [key for key in converted_parameters.keys()
-                      if key not in original_keys]
+            added_keys = added_keys + [key for key in converted_parameters.keys()
+                        if key not in original_keys]
 
-        converted_parameters['mass_2_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['ns_central_log10_pressure_2']-1.), family) / solar_mass
-        converted_parameters['redshift'] =\
-            luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
-        converted_parameters['mass_2'] =\
+            converted_parameters['mass_2_source'] = lalsim_SimNeutronStarMass(10**(converted_parameters['ns_central_log10_pressure_2']-1.), family) / solar_mass
+            converted_parameters['redshift'] =\
+                luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
+            converted_parameters['mass_2'] =\
                 converted_parameters['mass_2_source'] * (1 + converted_parameters['redshift'])
-        added_keys = added_keys + [key for key in converted_parameters.keys()
-                      if key not in original_keys]
+            added_keys = added_keys + [key for key in converted_parameters.keys()
+                        if key not in original_keys]
+        else:
+            added_keys = added_keys + [key for key in converted_parameters.keys()
+                        if key not in original_keys]
+            return converted_parameters, added_keys, lambda_1, lambda_2, eos_check
 
-    return converted_parameters, added_keys
+    return converted_parameters, added_keys, lambda_1, lambda_2, eos_check
 
 
 def pressure_scale_and_ratio_to_log_components(sample): 
@@ -437,7 +469,7 @@ def pressure_scale_and_ratio_to_log_components(sample):
     return out
 
 
-def ns_pressure_scale_and_ratio_to_log_components(sample, MIN_PRESSURE_cgs):
+def ns_pressure_scale_and_ratio_to_log_components(sample, family):
     """
     Calculates log component central pressures based on the mimimum pressure, the pressure scale, and the pressure ratio.
 
@@ -453,6 +485,9 @@ def ns_pressure_scale_and_ratio_to_log_components(sample, MIN_PRESSURE_cgs):
         A new dictionary of parameters, now with logpc1 and logpc2 included.
 
     """
+    min_mass = lalsim_SimNeutronStarFamMinimumMass(family)
+    MIN_PRESSURE_SI = np.log10(lalsim_SimNeutronStarCentralPressure(min_mass, family))
+    MIN_PRESSURE_cgs = MIN_PRESSURE_SI + 1.
     out = sample.copy()
     out['ns_central_log10_pressure_1'] = MIN_PRESSURE_cgs + out['ns_central_pressure_scale']
     out['ns_central_log10_pressure_2'] = MIN_PRESSURE_cgs + out['ns_central_pressure_ratio'] * out['ns_central_pressure_scale']
@@ -1234,57 +1269,23 @@ def polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_
                 return lambda_1, lambda_2, eos_check
         else:
             family = lalsim_CreateSimNeutronStarFamily(eos)
-            max_mass = lalsim_SimNeutronStarMaximumMass(family)
-            MAX_PRESSURE_SI = np.log10(lalsim_SimNeutronStarCentralPressure(max_mass, family))
-            MAX_PRESSURE_cgs = MAX_PRESSURE_SI + 1.
-            min_mass = lalsim_SimNeutronStarFamMinimumMass(family)
-            MIN_PRESSURE_SI = np.log10(lalsim_SimNeutronStarCentralPressure(min_mass, family))
-            MIN_PRESSURE_cgs = MIN_PRESSURE_SI + 1.
-            if 'ns_central_pressure_scale' in converted_parameters.keys():
-                ns_logp1 = MIN_PRESSURE_cgs + converted_parameters['ns_central_pressure_scale']
-                ns_logp2 = MIN_PRESSURE_cgs + (converted_parameters['ns_central_pressure_ratio'] * converted_parameters['ns_central_pressure_scale'])
-            elif 'ns_central_log10_pressure_1' in converted_parameters.keys():
-                ns_logp1 = converted_parameters['ns_central_log10_pressure_1']
-                ns_logp2 = converted_parameters['ns_central_log10_pressure_2']
-            if (MIN_PRESSURE_cgs < ns_logp1 < MAX_PRESSURE_cgs) and (MIN_PRESSURE_cgs < ns_logp2 < MAX_PRESSURE_cgs):
-                if 'mass_1_source' not in converted_parameters.keys():
-                    if 'ns_central_log10_pressure_1' not in converted_parameters.keys():
-                        passing_parameters = {'ns_central_pressure_scale': converted_parameters['ns_central_pressure_scale'], 'ns_central_pressure_ratio': converted_parameters['ns_central_pressure_ratio'], 'luminosity_distance': converted_parameters['luminosity_distance']}
-                    else:
-                        passing_parameters = {'ns_central_log10_pressure_1': converted_parameters['ns_central_log10_pressure_1'], 'ns_central_log10_pressure_2': converted_parameters['ns_central_log10_pressure_2'], 'luminosity_distance': converted_parameters['luminosity_distance']}
-                    passing_parameters, added_keys = generate_component_masses_from_central_pressures(passing_parameters, added_keys, MIN_PRESSURE_cgs, family)
+            if 'mass_1_source' not in converted_parameters.keys():
+                if 'ns_central_log10_pressure_1' not in converted_parameters.keys():
+                    passing_parameters = {'ns_central_pressure_scale': converted_parameters['ns_central_pressure_scale'], 'ns_central_pressure_ratio': converted_parameters['ns_central_pressure_ratio'], 'luminosity_distance': converted_parameters['luminosity_distance']}
+                else:
+                    passing_parameters = {'ns_central_log10_pressure_1': converted_parameters['ns_central_log10_pressure_1'], 'ns_central_log10_pressure_2': converted_parameters['ns_central_log10_pressure_2'], 'luminosity_distance': converted_parameters['luminosity_distance']}
+                passing_parameters, added_keys, lambda_1, lambda_2, eos_check = generate_component_masses_from_central_pressures(passing_parameters, added_keys, eos, family)
+                if eos_check == True:
                     mass_1_source, mass_2_source, mass_1, mass_2 = passing_parameters['mass_1_source'], passing_parameters['mass_2_source'], passing_parameters['mass_1'], passing_parameters['mass_2']
                     lambda_1, lambda_2, eos_check = neutron_star_family_physical_check(eos, family, mass_1_source, mass_2_source)
                 else:
-                    mass_1_source, mass_2_source, mass_1, mass_2 = converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['mass_1'], converted_parameters['mass_2']
-                    lambda_1, lambda_2, eos_check = neutron_star_family_physical_check(eos, family, mass_1_source, mass_2_source)
+                    mass_1_source = 1.4
+                    mass_2_source = 1.4
+                    mass_1 = 1.4
+                    mass_2 = 1.4
             else:
-                if 'mass_1_source' not in converted_parameters.keys():
-                    if 'ns_central_log10_pressure_1' not in converted_parameters.keys():
-                        lambda_1 = 0.0
-                        lambda_2 = 0.0
-                        mass_1_source = 1.4
-                        mass_2_source = 1.4
-                        mass_1 = 1.4
-                        mass_2 = 1.4
-                        ns_logp1 = 0.0
-                        ns_logp2 = 0.0
-                        eos_check = False
-                        return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, ns_logp1, ns_logp2, added_keys, eos_check
-                    else:
-                        lambda_1 = 0.0
-                        lambda_2 = 0.0
-                        mass_1_source = 1.4
-                        mass_2_source = 1.4
-                        mass_1 = 1.4
-                        mass_2 = 1.4
-                        eos_check = False
-                        return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, added_keys, eos_check
-                else:
-                    lambda_1 = 0.0
-                    lambda_2 = 0.0
-                    eos_check = False
-                    return lambda_1, lambda_2, eos_check
+                mass_1_source, mass_2_source, mass_1, mass_2 = converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['mass_1'], converted_parameters['mass_2']
+                lambda_1, lambda_2, eos_check = neutron_star_family_physical_check(eos, family, mass_1_source, mass_2_source)
         if 'mass_1_source' not in converted_parameters.keys():
             if 'ns_central_log10_pressure_1' not in converted_parameters.keys():
                 ns_logp1, ns_logp2 = passing_parameters['ns_central_log10_pressure_1'],passing_parameters['ns_central_log10_pressure_2']
@@ -1377,14 +1378,19 @@ def two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_
             return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, added_keys, eos_check
     else:
         family = lalsim_CreateSimNeutronStarFamily(eos)
-        MIN_PRESSURE_cgs = 0.0
         if 'logpc1' not in converted_parameters.keys() or converted_parameters['logpc1'] is None:
             passing_parameters = {'pressure_scale': converted_parameters['pressure_scale'], 'pressure_ratio': converted_parameters['pressure_ratio'], 'luminosity_distance': converted_parameters['luminosity_distance']}
         else:
             passing_parameters = {'logpc1': converted_parameters['logpc1'], 'logpc2': converted_parameters['logpc2'], 'luminosity_distance': converted_parameters['luminosity_distance']}
-        passing_parameters, added_keys = generate_component_masses_from_central_pressures(passing_parameters, added_keys, MIN_PRESSURE_cgs, family)
-        mass_1_source, mass_2_source, mass_1, mass_2 = passing_parameters['mass_1_source'], passing_parameters['mass_2_source'], passing_parameters['mass_1'], passing_parameters['mass_2']
-        lambda_1, lambda_2, eos_check = neutron_star_family_physical_check(eos, family, mass_1_source, mass_2_source)
+        passing_parameters, added_keys, lambda_1, lambda_2, eos_check = generate_component_masses_from_central_pressures(passing_parameters, added_keys, eos, family)
+        if eos_check == True:
+            mass_1_source, mass_2_source, mass_1, mass_2 = passing_parameters['mass_1_source'], passing_parameters['mass_2_source'], passing_parameters['mass_1'], passing_parameters['mass_2']
+            lambda_1, lambda_2, eos_check = neutron_star_family_physical_check(eos, family, mass_1_source, mass_2_source)
+        else:
+            mass_1_source = 1.4
+            mass_2_source = 1.4
+            mass_1 = 1.4
+            mass_2 = 1.4
     if 'logpc1' not in converted_parameters.keys() or converted_parameters['logpc1'] is None:
         logpc1, logpc2 = passing_parameters['logpc1'], passing_parameters['logpc2']
         return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, logpc1, logpc2, added_keys, eos_check
