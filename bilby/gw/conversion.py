@@ -619,16 +619,17 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                     m1s = converted_parameters['mass_1_source']
                     m2s = converted_parameters['mass_2_source']
                     def _call(pg_0, pg_1, pg_2, eos_logp_1, eos_logp_2, m1_s, m2_s):
-                        converted_parameters['eos_polytrope_gamma_0']               = pg_0
-                        converted_parameters['eos_polytrope_gamma_1']               = pg_1
-                        converted_parameters['eos_polytrope_gamma_2']               = pg_2
-                        converted_parameters['eos_polytrope_log10_pressure_1']      = eos_logp_1
-                        converted_parameters['eos_polytrope_log10_pressure_2']      = eos_logp_2
-                        converted_parameters['mass_1_source']                       = m1_s
-                        converted_parameters['mass_2_source']                       = m2_s
+                        call_parameters = converted_parameters.copy()
+                        call_parameters['eos_polytrope_gamma_0']               = pg_0
+                        call_parameters['eos_polytrope_gamma_1']               = pg_1
+                        call_parameters['eos_polytrope_gamma_2']               = pg_2
+                        call_parameters['eos_polytrope_log10_pressure_1']      = eos_logp_1
+                        call_parameters['eos_polytrope_log10_pressure_2']      = eos_logp_2
+                        call_parameters['mass_1_source']                       = m1_s
+                        call_parameters['mass_2_source']                       = m2_s
                         try:
                             lambda_1, lambda_2, eos_check = \
-                                polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
+                                polytrope_or_causal_params_to_lambda_1_lambda_2(call_parameters, added_keys, causal = 0)
                         except:
                             return 0.0, 0.0, False
                         return lambda_1, lambda_2, eos_check
@@ -673,16 +674,17 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                     m1s = converted_parameters['mass_1_source']
                     m2s = converted_parameters['mass_2_source']
                     def _call(pg_0, pg_1, pg_2, scaled_pressure_ratio, scaled_pressure_2, m1_s, m2_s):
-                        converted_parameters['eos_polytrope_gamma_0']                   = pg_0
-                        converted_parameters['eos_polytrope_gamma_1']                   = pg_1
-                        converted_parameters['eos_polytrope_gamma_2']                   = pg_2
-                        converted_parameters['eos_polytrope_scaled_pressure_ratio']     = scaled_pressure_ratio
-                        converted_parameters['eos_polytrope_scaled_pressure_2']         = scaled_pressure_2
-                        converted_parameters['mass_1_source']                           = m1_s
-                        converted_parameters['mass_2_source']                           = m2_s
+                        call_parameters = converted_parameters.copy()
+                        call_parameters['eos_polytrope_gamma_0']                   = pg_0
+                        call_parameters['eos_polytrope_gamma_1']                   = pg_1
+                        call_parameters['eos_polytrope_gamma_2']                   = pg_2
+                        call_parameters['eos_polytrope_scaled_pressure_ratio']     = scaled_pressure_ratio
+                        call_parameters['eos_polytrope_scaled_pressure_2']         = scaled_pressure_2
+                        call_parameters['mass_1_source']                           = m1_s
+                        call_parameters['mass_2_source']                           = m2_s
                         try:
                             lambda_1, lambda_2, eos_check = \
-                                polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
+                                polytrope_or_causal_params_to_lambda_1_lambda_2(call_parameters, added_keys, causal = 0)
                         except:
                             return 0.0, 0.0, False
                         return lambda_1, lambda_2, eos_check
@@ -730,15 +732,16 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                     if type(lumin_dist) == float:
                         lumin_dist = np.ones(max_len) * lumin_dist
                     def _call(pg_0, pg_1, pg_2, ns_logp_1, ns_logp_2, lum_dist):
-                        converted_parameters['eos_polytrope_gamma_0']               = pg_0
-                        converted_parameters['eos_polytrope_gamma_1']               = pg_1
-                        converted_parameters['eos_polytrope_gamma_2']               = pg_2
-                        converted_parameters['ns_central_log10_pressure_1']         = ns_logp_1
-                        converted_parameters['ns_central_log10_pressure_2']         = ns_logp_2
-                        converted_parameters['luminosity_distance']                 = lum_dist
+                        call_parameters = converted_parameters.copy()
+                        call_parameters['eos_polytrope_gamma_0']               = pg_0
+                        call_parameters['eos_polytrope_gamma_1']               = pg_1
+                        call_parameters['eos_polytrope_gamma_2']               = pg_2
+                        call_parameters['ns_central_log10_pressure_1']         = ns_logp_1
+                        call_parameters['ns_central_log10_pressure_2']         = ns_logp_2
+                        call_parameters['luminosity_distance']                 = lum_dist
                         try:
                             lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, added_keys, eos_check = \
-                                polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
+                                polytrope_or_causal_params_to_lambda_1_lambda_2(call_parameters, added_keys, causal = 0)
                         except:
                             return 0.0, 0.0, 1.4, 1.4, 1.4, 1.4, False
                         return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, eos_check
@@ -765,7 +768,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                         float_eos_params[key] = converted_parameters[key]
                     elif hasattr(val, '__len__') and len(val) > max_len:
                         max_len = len(val)
-                if len(float_eos_params) == len(eos_keys):  # all scalars
+                if len(float_eos_params) == len(eos_keys):
                     try:
                         converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['mass_1'], converted_parameters['mass_2'], converted_parameters['ns_central_log10_pressure_1'], converted_parameters['ns_central_log10_pressure_2'], added_keys, converted_parameters['eos_check'] = \
                             polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
@@ -791,15 +794,16 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                     if type(lumin_dist) == float:
                         lumin_dist = np.ones(max_len) * lumin_dist
                     def _call(pg_0, pg_1, pg_2, ns_pressure_scale, ns_pressure_ratio, lum_dist):
-                        converted_parameters['eos_polytrope_gamma_0']               = pg_0
-                        converted_parameters['eos_polytrope_gamma_1']               = pg_1
-                        converted_parameters['eos_polytrope_gamma_2']               = pg_2
-                        converted_parameters['ns_central_pressure_scale']           = ns_pressure_scale
-                        converted_parameters['ns_central_pressure_ratio']           = ns_pressure_ratio
-                        converted_parameters['luminosity_distance']                 = lum_dist
+                        call_parameters = converted_parameters.copy()
+                        call_parameters['eos_polytrope_gamma_0']               = pg_0
+                        call_parameters['eos_polytrope_gamma_1']               = pg_1
+                        call_parameters['eos_polytrope_gamma_2']               = pg_2
+                        call_parameters['ns_central_pressure_scale']           = ns_pressure_scale
+                        call_parameters['ns_central_pressure_ratio']           = ns_pressure_ratio
+                        call_parameters['luminosity_distance']                 = lum_dist
                         try:
                             lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, ns_logp1, ns_logp2, added_keys, eos_check = \
-                                polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
+                                polytrope_or_causal_params_to_lambda_1_lambda_2(call_parameters, added_keys, causal = 0)
                         except:
                             return 0.0, 0.0, 1.4, 1.4, 1.4, 1.4, 0.0, 0.0, False
                         return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, ns_logp1, ns_logp2, eos_check
@@ -852,14 +856,15 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
             if type(lumin_dist) == float:
                 lumin_dist = np.ones(max_len) * lumin_dist
             def _call(pg_0, pg_1, log_pc1, log_pc2, lum_dist):
-                converted_parameters['eos_2p_polytrope_gamma_0']            = pg_0
-                converted_parameters['eos_2p_polytrope_gamma_1']            = pg_1
-                converted_parameters['logpc1']                              = log_pc1
-                converted_parameters['logpc2']                              = log_pc2
-                converted_parameters['luminosity_distance']                 = lum_dist
+                call_parameters = converted_parameters.copy()
+                call_parameters['eos_2p_polytrope_gamma_0']            = pg_0
+                call_parameters['eos_2p_polytrope_gamma_1']            = pg_1
+                call_parameters['logpc1']                              = log_pc1
+                call_parameters['logpc2']                              = log_pc2
+                call_parameters['luminosity_distance']                 = lum_dist
                 try:
                     lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, added_keys, eos_check = \
-                        two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(converted_parameters, added_keys, causal = 0)
+                        two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(call_parameters, added_keys, causal = 0)
                 except:
                     return 0.0, 0.0, 1.4, 1.4, 1.4, 1.4, False
                 return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, eos_check
@@ -912,14 +917,15 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
             if type(lumin_dist) == float:
                 lumin_dist = np.ones(max_len) * lumin_dist
             def _call(pg_0, pg_1, pressure_scale, pressure_ratio, lum_dist):
-                converted_parameters['eos_2p_polytrope_gamma_0']            = pg_0
-                converted_parameters['eos_2p_polytrope_gamma_1']            = pg_1
-                converted_parameters['pressure_scale']                      = pressure_scale
-                converted_parameters['pressure_ratio']                      = pressure_ratio
-                converted_parameters['luminosity_distance']                 = lum_dist
+                call_parameters = converted_parameters.copy()
+                call_parameters['eos_2p_polytrope_gamma_0']            = pg_0
+                call_parameters['eos_2p_polytrope_gamma_1']            = pg_1
+                call_parameters['pressure_scale']                      = pressure_scale
+                call_parameters['pressure_ratio']                      = pressure_ratio
+                call_parameters['luminosity_distance']                 = lum_dist
                 try:
                     lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, logpc1, logpc2, added_keys, eos_check = \
-                        two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(converted_parameters, added_keys, causal = 0)
+                        two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(call_parameters, added_keys, causal = 0)
                 except:
                     return 0.0, 0.0, 1.4, 1.4, 1.4, 1.4, 0.0, 0.0, False
                 return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, logpc1, logpc2, eos_check
