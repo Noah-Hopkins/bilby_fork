@@ -604,7 +604,8 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                     try:
                         converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['eos_check'] = \
                             polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
-                    except:
+                    except RuntimeError as e:
+                        logger.debug("EOS evaluation failed for a sample (%s)", e)
                         converted_parameters['lambda_1'] = 0.0
                         converted_parameters['lambda_2'] = 0.0 
                         converted_parameters['eos_check'] = False
@@ -637,6 +638,9 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                     (converted_parameters['lambda_1'],
                     converted_parameters['lambda_2'],
                     converted_parameters['eos_check']) = vfunc(pg0, pg1, pg2, eos_logp1, eos_logp2, m1s, m2s)
+                    samples_rejected = int(np.sum(~np.asarray(converted_parameters['eos_check'], dtype = bool)))
+                    if samples_rejected:
+                        logger.info("EOS conversion: %d/%d samples rejected (eos_check = False)", samples_rejected, max_len)
                     for key in float_eos_params.keys():
                         converted_parameters[key] = float_eos_params[key]
             else:
@@ -659,7 +663,8 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                     try:
                         converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['eos_check'] = \
                             polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
-                    except:
+                    except RuntimeError as e:
+                        logger.debug("EOS evaluation failed for a sample (%s)", e)
                         converted_parameters['lambda_1'] = 0.0
                         converted_parameters['lambda_2'] = 0.0
                         converted_parameters['eos_check'] = False
@@ -692,6 +697,9 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                     (converted_parameters['lambda_1'],
                     converted_parameters['lambda_2'],
                     converted_parameters['eos_check']) = vfunc(pg0, pg1, pg2, scaled_pressure_ratio, scaled_pressure_2, m1s, m2s)
+                    samples_rejected = int(np.sum(~np.asarray(converted_parameters['eos_check'], dtype = bool)))
+                    if samples_rejected:
+                        logger.info("EOS conversion: %d/%d samples rejected (eos_check = False)", samples_rejected, max_len)
                     for key in float_eos_params.keys():
                         converted_parameters[key] = float_eos_params[key]
         else:
@@ -714,7 +722,8 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                     try:
                         converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['mass_1'], converted_parameters['mass_2'], added_keys, converted_parameters['eos_check'] = \
                             polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
-                    except:
+                    except RuntimeError as e:
+                        logger.debug("EOS evaluation failed for a sample (%s)", e)
                         converted_parameters['lambda_1'] = 0.0
                         converted_parameters['lambda_2'] = 0.0
                         converted_parameters['mass_1_source'] = 1.4
@@ -759,6 +768,9 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                     converted_parameters['mass_1'],
                     converted_parameters['mass_2'],
                     converted_parameters['eos_check']) = vfunc(pg0, pg1, pg2, scaled_pressure_2, scaled_pressure_ratio, ns_logp1, ns_logp2, lumin_dist)
+                    samples_rejected = int(np.sum(~np.asarray(converted_parameters['eos_check'], dtype = bool)))
+                    if samples_rejected:
+                        logger.info("EOS conversion: %d/%d samples rejected (eos_check = False)", samples_rejected, max_len)
                     for key in float_eos_params.keys():
                         converted_parameters[key] = float_eos_params[key]
             elif 'ns_central_log10_pressure_1' in converted_parameters.keys() and 'eos_polytrope_log10_pressure_1' in converted_parameters.keys():
@@ -780,7 +792,8 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                     try:
                         converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['mass_1'], converted_parameters['mass_2'], added_keys, converted_parameters['eos_check'] = \
                             polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
-                    except:
+                    except RuntimeError as e:
+                        logger.debug("EOS evaluation failed for a sample (%s)", e)
                         converted_parameters['lambda_1'] = 0.0
                         converted_parameters['lambda_2'] = 0.0
                         converted_parameters['mass_1_source'] = 1.4
@@ -825,6 +838,9 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                     converted_parameters['mass_1'],
                     converted_parameters['mass_2'],
                     converted_parameters['eos_check']) = vfunc(pg0, pg1, pg2, eos_logp1, eos_logp2, ns_logp1, ns_logp2, lumin_dist)
+                    samples_rejected = int(np.sum(~np.asarray(converted_parameters['eos_check'], dtype = bool)))
+                    if samples_rejected:
+                        logger.info("EOS conversion: %d/%d samples rejected (eos_check = False)", samples_rejected, max_len)
                     for key in float_eos_params.keys():
                         converted_parameters[key] = float_eos_params[key]
             elif 'ns_central_pressure_scale' in converted_parameters.keys() and 'eos_polytrope_scaled_pressure_ratio' in converted_parameters.keys():
@@ -846,7 +862,8 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                     try:
                         converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['mass_1'], converted_parameters['mass_2'], converted_parameters['ns_central_log10_pressure_1'], converted_parameters['ns_central_log10_pressure_2'], added_keys, converted_parameters['eos_check'] = \
                             polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
-                    except:
+                    except RuntimeError as e:
+                        logger.debug("EOS evaluation failed for a sample (%s)", e)
                         converted_parameters['lambda_1'] = 0.0
                         converted_parameters['lambda_2'] = 0.0
                         converted_parameters['mass_1_source'] = 1.4
@@ -895,6 +912,9 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                     converted_parameters['ns_central_log10_pressure_1'],
                     converted_parameters['ns_central_log10_pressure_2'],
                     converted_parameters['eos_check']) = vfunc(pg0, pg1, pg2, scaled_pressure_2, scaled_pressure_ratio, ns_pressure_scale, ns_pressure_ratio, lumin_dist)
+                    samples_rejected = int(np.sum(~np.asarray(converted_parameters['eos_check'], dtype = bool)))
+                    if samples_rejected:
+                        logger.info("EOS conversion: %d/%d samples rejected (eos_check = False)", samples_rejected, max_len)
                     for key in float_eos_params.keys():
                         converted_parameters[key] = float_eos_params[key]
             elif 'ns_central_pressure_scale' in converted_parameters.keys() and 'eos_polytrope_log10_pressure_1' in converted_parameters.keys():
@@ -916,7 +936,8 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                     try:
                         converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['mass_1'], converted_parameters['mass_2'], converted_parameters['ns_central_log10_pressure_1'], converted_parameters['ns_central_log10_pressure_2'], added_keys, converted_parameters['eos_check'] = \
                             polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
-                    except:
+                    except RuntimeError as e:
+                        logger.debug("EOS evaluation failed for a sample (%s)", e)
                         converted_parameters['lambda_1'] = 0.0
                         converted_parameters['lambda_2'] = 0.0
                         converted_parameters['mass_1_source'] = 1.4
@@ -965,6 +986,9 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                     converted_parameters['ns_central_log10_pressure_1'],
                     converted_parameters['ns_central_log10_pressure_2'],
                     converted_parameters['eos_check']) = vfunc(pg0, pg1, pg2, eos_logp1, eos_logp_2, ns_pressure_scale, ns_pressure_ratio, lumin_dist)
+                    samples_rejected = int(np.sum(~np.asarray(converted_parameters['eos_check'], dtype = bool)))
+                    if samples_rejected:
+                        logger.info("EOS conversion: %d/%d samples rejected (eos_check = False)", samples_rejected, max_len)
                     for key in float_eos_params.keys():
                         converted_parameters[key] = float_eos_params[key]
 
@@ -986,7 +1010,8 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
             try:
                 converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['mass_1'], converted_parameters['mass_2'], added_keys, converted_parameters['eos_check'] = \
                     two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(converted_parameters, added_keys, causal = 0)
-            except:
+            except RuntimeError as e:
+                logger.debug("EOS evaluation failed for a sample (%s)", e)
                 converted_parameters['lambda_1'] = 0.0
                 converted_parameters['lambda_2'] = 0.0
                 converted_parameters['mass_1_source'] = 1.4
@@ -1005,14 +1030,14 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
             if type(lumin_dist) == float:
                 lumin_dist = np.ones(max_len) * lumin_dist
             def _call(pg_0, pg_1, log_pc1, log_pc2, lum_dist):
-                call_parameters = converted_parameters.copy()
+                call_parameters = dict(converted_parameters)
                 call_parameters['eos_2p_polytrope_gamma_0']            = pg_0
                 call_parameters['eos_2p_polytrope_gamma_1']            = pg_1
                 call_parameters['logpc1']                              = log_pc1
                 call_parameters['logpc2']                              = log_pc2
                 call_parameters['luminosity_distance']                 = lum_dist
                 try:
-                    lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, added_keys, eos_check = \
+                    lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, _added_keys, eos_check = \
                         two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(call_parameters, added_keys, causal = 0)
                 except:
                     return 0.0, 0.0, 1.4, 1.4, 1.4, 1.4, False
@@ -1025,6 +1050,9 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
             converted_parameters['mass_1'],
             converted_parameters['mass_2'],
             converted_parameters['eos_check']) = vfunc(pg0, pg1, logpc1, logpc2, lumin_dist)
+            samples_rejected = int(np.sum(~np.asarray(converted_parameters['eos_check'], dtype = bool)))
+            if samples_rejected:
+                logger.info("EOS conversion: %d/%d samples rejected (eos_check = False)", samples_rejected, max_len)
             for key in float_eos_params.keys():
                 converted_parameters[key] = float_eos_params[key]
     elif 'eos_2p_polytrope_gamma_0' in converted_parameters.keys() and 'pressure_scale' in converted_parameters.keys():
@@ -1045,7 +1073,8 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
             try:
                 converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['mass_1'], converted_parameters['mass_2'], converted_parameters['logpc1'], converted_parameters['logpc2'], added_keys, converted_parameters['eos_check'] = \
                     two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(converted_parameters, added_keys, causal = 0)
-            except:
+            except RuntimeError as e:
+                logger.debug("EOS evaluation failed for a sample (%s)", e)
                 converted_parameters['lambda_1'] = 0.0
                 converted_parameters['lambda_2'] = 0.0
                 converted_parameters['mass_1_source'] = 1.4
@@ -1066,14 +1095,14 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
             if type(lumin_dist) == float:
                 lumin_dist = np.ones(max_len) * lumin_dist
             def _call(pg_0, pg_1, pressure_scale, pressure_ratio, lum_dist):
-                call_parameters = converted_parameters.copy()
+                call_parameters = dict(converted_parameters)
                 call_parameters['eos_2p_polytrope_gamma_0']            = pg_0
                 call_parameters['eos_2p_polytrope_gamma_1']            = pg_1
                 call_parameters['pressure_scale']                      = pressure_scale
                 call_parameters['pressure_ratio']                      = pressure_ratio
                 call_parameters['luminosity_distance']                 = lum_dist
                 try:
-                    lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, logpc1, logpc2, added_keys, eos_check = \
+                    lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, logpc1, logpc2, _added_keys, eos_check = \
                         two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(call_parameters, added_keys, causal = 0)
                 except:
                     return 0.0, 0.0, 1.4, 1.4, 1.4, 1.4, 0.0, 0.0, False
@@ -1088,6 +1117,9 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
             converted_parameters['logpc1'],
             converted_parameters['logpc2'],
             converted_parameters['eos_check']) = vfunc(pg0, pg1, pressure_scale, pressure_ratio, lumin_dist)
+            samples_rejected = int(np.sum(~np.asarray(converted_parameters['eos_check'], dtype = bool)))
+            if samples_rejected:
+                logger.info("EOS conversion: %d/%d samples rejected (eos_check = False)", samples_rejected, max_len)
             for key in float_eos_params.keys():
                 converted_parameters[key] = float_eos_params[key]
     elif 'eos_v1' in converted_parameters.keys():
