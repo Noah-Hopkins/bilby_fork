@@ -905,10 +905,10 @@ def lalsim_SimNeutronStarEOS2PDViableFamilyCheck(p0, log10p1_si, p1, causal):
     return SimNeutronStarEOS2PDViableFamilyCheck(p0, log10p1_si, p1, causal)
 
 
-def lalsim_CreateSimNeutronStarFamily(eos):
+def lalsim_CreateSimNeutronStarFamily(eos, min_fam):
     from lalsimulation import CreateSimNeutronStarFamily
 
-    return CreateSimNeutronStarFamily(eos)
+    return CreateSimNeutronStarFamily(eos, min_fam)
 
 
 def lalsim_SimNeutronStarEOSMaxPseudoEnthalpy(eos):
@@ -945,8 +945,8 @@ def lalsim_SimNeutronStarMaximumMass(fam):
     return SimNeutronStarMaximumMass(fam)
 
 
-def lalsim_SimNeutronStarRadius(mass_in_SI, fam):
-    from lalsimulation import SimNeutronStarRadius
+def lalsim_SimNeutronStarFamRadiusOfMass(mass_in_SI, fam):
+    from lalsimulation import SimNeutronStarFamRadiusOfMass
     try:
         mass_in_SI = float(mass_in_SI)
     except ValueError:
@@ -954,11 +954,11 @@ def lalsim_SimNeutronStarRadius(mass_in_SI, fam):
     except TypeError:
         raise TypeError("Unable to convert mass_in_SI to float.")
 
-    return SimNeutronStarRadius(mass_in_SI, fam)
+    return SimNeutronStarFamRadiusOfMass(mass_in_SI, fam)
 
 
-def lalsim_SimNeutronStarLoveNumberK2(mass_in_SI, fam):
-    from lalsimulation import SimNeutronStarLoveNumberK2
+def lalsim_SimNeutronStarFamLoveNumberK2OfMass(mass_in_SI, fam):
+    from lalsimulation import SimNeutronStarFamLoveNumberK2OfMass
     try:
         mass_in_SI = float(mass_in_SI)
     except ValueError:
@@ -966,8 +966,31 @@ def lalsim_SimNeutronStarLoveNumberK2(mass_in_SI, fam):
     except TypeError:
         raise TypeError("Unable to convert mass_in_SI to float.")
 
-    return SimNeutronStarLoveNumberK2(mass_in_SI, fam)
+    return SimNeutronStarFamLoveNumberK2OfMass(mass_in_SI, fam)
 
+
+def lalsim_SimNeutronStarCentralPressure(mass_in_SI, fam):
+    from lalsimulation import SimNeutronStarCentralPressure
+    try: 
+        mass_in_SI = float(mass_in_SI)
+    except ValueError:
+        raise ValueError("Unable to convert mass_in_SI to float.")
+    except TypeError:
+        raise TypeError("Unable to convert mass_in_SI to float.")
+
+    return SimNeutronStarCentralPressure(mass_in_SI, fam)
+
+
+def lalsim_SimNeutronStarFamMassOfCentralPressure(pressure_in_SI, fam): 
+    from lalsimulation import SimNeutronStarFamMassOfCentralPressure
+    try: 
+        pressure_in_SI = float(pressure_in_SI)
+    except ValueError:
+        raise ValueError("Unable to convert pressure_in_SI to float.")
+    except TypeError:
+        raise TypeError("Unable to convert pressure_in_SI to float.")
+
+    return SimNeutronStarFamMassOfCentralPressure(pressure_in_SI, fam)
 
 @xp_wrap
 def spline_angle_xform(delta_psi, *, xp=None):
