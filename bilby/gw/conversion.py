@@ -26,8 +26,8 @@ from .utils import (lalsim_SimNeutronStarEOS4ParamSDGammaCheck,
                     lalsim_SimNeutronStarEOSSpeedOfSoundGeometerized,
                     lalsim_SimNeutronStarFamMinimumMass,
                     lalsim_SimNeutronStarMaximumMass,
-                    lalsim_SimNeutronStarFamRadiusOfMass,
-                    lalsim_SimNeutronStarFamLoveNumberK2OfMass,
+                    lalsim_SimNeutronStarFamRadiusOfCentralPressure,
+                    lalsim_SimNeutronStarFamLoveNumberK2OfCentralPressure,
                     lalsim_SimNeutronStarCentralPressure,
                     lalsim_SimNeutronStarFamMassOfCentralPressure)
 
@@ -1421,7 +1421,7 @@ def polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_
                     mass_2 = 1.4
             else:
                 mass_1_source, mass_2_source, mass_1, mass_2 = converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['mass_1'], converted_parameters['mass_2']
-                lambda_1, lambda_2, eos_check = neutron_star_family_physical_check(eos, family, mass_1_source, mass_2_source)
+                lambda_1, lambda_2, eos_check = neutron_star_family_physical_check(eos, family, mass_1_source, mass_2_source, 10**(ns_logp1 - 1),  10**(ns_logp2 - 1))
         if 'mass_1_source' not in converted_parameters.keys():
             if 'ns_central_log10_pressure_1' not in converted_parameters.keys():
                 ns_logp1, ns_logp2 = passing_parameters['ns_central_log10_pressure_1'],passing_parameters['ns_central_log10_pressure_2']
@@ -1534,7 +1534,7 @@ def two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_
         return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, added_keys, eos_check
 
 
-def neutron_star_family_physical_check(eos, family, mass_1_source, mass_2_source):
+def neutron_star_family_physical_check(eos, family, mass_1_source, mass_2_source, pc1, pc2):
     """
     Takes in a lalsim eos object. Performs causal and max/min mass eos checks.
     Calculates component lambdas if eos object passes causality.
@@ -1562,8 +1562,8 @@ def neutron_star_family_physical_check(eos, family, mass_1_source, mass_2_source
     min_mass = lalsim_SimNeutronStarFamMinimumMass(family) / solar_mass
     max_mass = lalsim_SimNeutronStarMaximumMass(family) / solar_mass
     if max_speed_of_sound <= 1.1 and min_mass <= mass_1_source <= max_mass and min_mass <= mass_2_source <= max_mass:
-        lambda_1 = lambda_from_mass_and_family(mass_1_source, family)
-        lambda_2 = lambda_from_mass_and_family(mass_2_source, family)
+        lambda_1 = lambda_from_mass_and_family(mass_1_source, pc1, family)
+        lambda_2 = lambda_from_mass_and_family(mass_2_source, pc2, family)
     else:
         lambda_1 = 0.0
         lambda_2 = 0.0
@@ -1605,8 +1605,8 @@ def neutron_star_family_physical_check_in_central_pressure(eos, family, pc1, pc2
     if max_speed_of_sound <= 1.1 and min_mass_pressure <= pc1 <= max_mass_pressure and min_mass_pressure <= pc2 <= max_mass_pressure:
         mass_1_source = lalsim_SimNeutronStarFamMassOfCentralPressure(pc1, family) / solar_mass
         mass_2_source = lalsim_SimNeutronStarFamMassOfCentralPressure(pc2, family) / solar_mass
-        lambda_1 = lambda_from_mass_and_family(mass_1_source, family)
-        lambda_2 = lambda_from_mass_and_family(mass_2_source, family)
+        lambda_1 = lambda_from_mass_and_family(mass_1_source, pc1, family)
+        lambda_2 = lambda_from_mass_and_family(mass_2_source, pc2, family)
     else:
         lambda_1 = 0.0
         lambda_2 = 0.0
@@ -1615,7 +1615,7 @@ def neutron_star_family_physical_check_in_central_pressure(eos, family, pc1, pc2
     return lambda_1, lambda_2, eos_check
 
 
-def lambda_from_mass_and_family(mass_i, family):
+def lambda_from_mass_and_family(mass_i, pressure_i, family):
     """
     Convert from equation of state model parameters to
     component tidal parameters.
@@ -1632,15 +1632,11 @@ def lambda_from_mass_and_family(mass_i, family):
         component tidal deformability parameter
 
     """
-    radius = lalsim_SimNeutronStarFamRadiusOfMass(mass_i * solar_mass, family)
-    love_number_k2 = lalsim_SimNeutronStarFamLoveNumberK2OfMass(mass_i * solar_mass, family)
+    radius = lalsim_SimNeutronStarFamRadiusOfCentralPressure(pressure_i, family)/1000
+    love_number_k2 = lalsim_SimNeutronStarFamLoveNumberK2OfCentralPressure(pressure_i, family)
     mass_geometrized = mass_i * solar_mass * gravitational_constant / speed_of_light ** 2.
-    for i in range(radius.length):
-        compactness = mass_geometrized / radius.data[i]
-    #compactness = mass_geometrized / radius
-    for i in range(love_number_k2.length):
-        lambda_i = (2. / 3.) * love_number_k2.data[i] / compactness ** 5.
-    #lambda_i = (2. / 3.) * love_number_k2 / compactness ** 5.
+    compactness = mass_geometrized / radius
+    lambda_i = (2. / 3.) * love_number_k2 / compactness ** 5.
 
     return lambda_i
 
