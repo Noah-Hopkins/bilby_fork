@@ -945,6 +945,18 @@ def lalsim_SimNeutronStarMaximumMass(fam):
     return SimNeutronStarMaximumMass(fam)
 
 
+def lalsim_SimNeutronStarRadius(mass_in_SI, fam):
+    from lalsimulation import SimNeutronStarRadius
+    try:
+        mass_in_SI = float(mass_in_SI)
+    except ValueError:
+        raise ValueError("Unable to convert mass_in_SI to float.")
+    except TypeError:
+        raise TypeError("Unable to convert mass_in_SI to float.")
+
+    return SimNeutronStarRadius(mass_in_SI, fam)
+
+
 def lalsim_SimNeutronStarFamRadiusOfCentralPressure(pressure_in_SI, fam):
     from lalsimulation import SimNeutronStarFamRadiusOfCentralPressure
     try:
@@ -955,6 +967,18 @@ def lalsim_SimNeutronStarFamRadiusOfCentralPressure(pressure_in_SI, fam):
         raise TypeError("Unable to convert ns_logpc1_SI to float.")
 
     return SimNeutronStarFamRadiusOfCentralPressure(pressure_in_SI, fam)
+
+
+def lalsim_SimNeutronStarLoveNumberK2(mass_in_SI, fam):
+    from lalsimulation import SimNeutronStarLoveNumberK2
+    try:
+        mass_in_SI = float(mass_in_SI)
+    except ValueError:
+        raise ValueError("Unable to convert mass_in_SI to float.")
+    except TypeError:
+        raise TypeError("Unable to convert mass_in_SI to float.")
+
+    return SimNeutronStarLoveNumberK2(mass_in_SI, fam)
 
 
 def lalsim_SimNeutronStarFamLoveNumberK2OfCentralPressure(pressure_in_SI, fam):
