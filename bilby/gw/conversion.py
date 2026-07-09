@@ -1635,6 +1635,10 @@ def lambda_from_mass_and_family(mass_i, family):
     """
     radius = lalsim_SimNeutronStarRadius(mass_i * solar_mass, family)
     love_number_k2 = lalsim_SimNeutronStarLoveNumberK2(mass_i * solar_mass, family)
+    '''
+    Used old functions for radius and love number because the new tov solver outputs an array.
+    Now we do with central pressure sampling in lambda_from_pressure_and_family
+    '''
     mass_geometrized = mass_i * solar_mass * gravitational_constant / speed_of_light ** 2.
     compactness = mass_geometrized / radius
     lambda_i = (2. / 3.) * love_number_k2 / compactness ** 5.
