@@ -933,16 +933,28 @@ def lalsim_SimNeutronStarEOSSpeedOfSoundGeometerized(max_pseudo_enthalpy, eos):
         raise("Something, probably the XLAL error from interp.c:150, has occured.")
 
 
-def lalsim_SimNeutronStarFamMinimumMass(fam):
-    from lalsimulation import SimNeutronStarFamMinimumMass
+def lalsim_SimNeutronStarFamMinMass(fam):
+    from lalsimulation import SimNeutronStarFamMinMass
 
-    return SimNeutronStarFamMinimumMass(fam)
+    return SimNeutronStarFamMinMass(fam)
 
 
-def lalsim_SimNeutronStarMaximumMass(fam):
-    from lalsimulation import SimNeutronStarMaximumMass
+def lalsim_SimNeutronStarFamMaxMass(fam):
+    from lalsimulation import SimNeutronStarFamMaxMass
 
-    return SimNeutronStarMaximumMass(fam)
+    return SimNeutronStarFamMaxMass(fam)
+
+
+def lalsim_SimNeutronStarFamMinCentralPressure(fam):
+    from lalsimulation import SimNeutronStarFamMinCentralPressure
+
+    return SimNeutronStarFamMinCentralPressure(fam)
+
+
+def lalsim_SimNeutronStarFamMaxCentralPressure(fam):
+    from lalsimulation import SimNeutronStarFamMaxCentralPressure
+
+    return SimNeutronStarFamMaxCentralPressure(fam)
 
 
 def lalsim_SimNeutronStarRadius(mass_in_SI, fam):
@@ -993,8 +1005,8 @@ def lalsim_SimNeutronStarFamLoveNumberK2OfCentralPressure(pressure_in_SI, fam):
     return SimNeutronStarFamLoveNumberK2OfCentralPressure(pressure_in_SI, fam)
 
 
-def lalsim_SimNeutronStarCentralPressure(mass_in_SI, fam):
-    from lalsimulation import SimNeutronStarCentralPressure
+def lalsim_SimNeutronStarFamCentralPressureOfMass(mass_in_SI, fam):
+    from lalsimulation import SimNeutronStarFamCentralPressureOfMass
     try: 
         mass_in_SI = float(mass_in_SI)
     except ValueError:
@@ -1002,7 +1014,7 @@ def lalsim_SimNeutronStarCentralPressure(mass_in_SI, fam):
     except TypeError:
         raise TypeError("Unable to convert mass_in_SI to float.")
 
-    return SimNeutronStarCentralPressure(mass_in_SI, fam)
+    return SimNeutronStarFamCentralPressureOfMass(mass_in_SI, fam)
 
 
 def lalsim_SimNeutronStarFamMassOfCentralPressure(pressure_in_SI, fam): 
@@ -1015,6 +1027,25 @@ def lalsim_SimNeutronStarFamMassOfCentralPressure(pressure_in_SI, fam):
         raise TypeError("Unable to convert pressure_in_SI to float.")
 
     return SimNeutronStarFamMassOfCentralPressure(pressure_in_SI, fam)
+
+
+def lalsim_SimNeutronStarFamNumberOfBranches(fam):
+    from lalsimulation import SimNeutronStarFamNumberOfBranches
+
+    return SimNeutronStarFamNumberOfBranches(fam)
+
+
+def lalsim_SimNeutronStarFamMinCentralPressurePerBranch(fam, branch_id):
+    from lalsimulation import SimNeutronStarFamMinCentralPressurePerBranch
+
+    return SimNeutronStarFamMinCentralPressurePerBranch(fam, branch_id)
+
+
+def lalsim_SimNeutronStarFamMaxCentralPressurePerBranch(fam, branch_id):
+    from lalsimulation import SimNeutronStarFamMaxCentralPressurePerBranch
+
+    return SimNeutronStarFamMaxCentralPressurePerBranch(fam, branch_id)
+
 
 @xp_wrap
 def spline_angle_xform(delta_psi, *, xp=None):

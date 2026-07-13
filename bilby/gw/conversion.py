@@ -24,13 +24,18 @@ from .utils import (lalsim_SimNeutronStarEOS4ParamSDGammaCheck,
                     lalsim_CreateSimNeutronStarFamily,
                     lalsim_SimNeutronStarEOSMaxPseudoEnthalpy,
                     lalsim_SimNeutronStarEOSSpeedOfSoundGeometerized,
-                    lalsim_SimNeutronStarFamMinimumMass,
-                    lalsim_SimNeutronStarMaximumMass,
+                    lalsim_SimNeutronStarFamMinMass,
+                    lalsim_SimNeutronStarFamMaxMass,
+                    lalsim_SimNeutronStarFamMinCentralPressure,
+                    lalsim_SimNeutronStarFamMaxCentralPressure,
                     lalsim_SimNeutronStarRadius,
                     lalsim_SimNeutronStarFamRadiusOfCentralPressure,
                     lalsim_SimNeutronStarLoveNumberK2,
                     lalsim_SimNeutronStarFamLoveNumberK2OfCentralPressure,
-                    lalsim_SimNeutronStarCentralPressure,
+                    lalsim_SimNeutronStarFamCentralPressureOfMass,
+                    lalsim_SimNeutronStarFamNumberOfBranches,
+                    lalsim_SimNeutronStarFamMinCentralPressurePerBranch,
+                    lalsim_SimNeutronStarFamMaxCentralPressurePerBranch,
                     lalsim_SimNeutronStarFamMassOfCentralPressure)
 
 from ..compat.utils import array_module
@@ -1600,11 +1605,23 @@ def neutron_star_family_physical_check_in_central_pressure(eos, family, pc1, pc2
     #family = lalsim_CreateSimNeutronStarFamily(eos)
     max_pseudo_enthalpy = lalsim_SimNeutronStarEOSMaxPseudoEnthalpy(eos)
     max_speed_of_sound = lalsim_SimNeutronStarEOSSpeedOfSoundGeometerized(max_pseudo_enthalpy, eos)
-    min_mass = lalsim_SimNeutronStarFamMinimumMass(family)
-    max_mass = lalsim_SimNeutronStarMaximumMass(family)
-    min_mass_pressure = lalsim_SimNeutronStarCentralPressure(min_mass, family)
-    max_mass_pressure = lalsim_SimNeutronStarCentralPressure(max_mass, family)
-    if max_speed_of_sound <= 1.1 and min_mass_pressure <= pc1 <= max_mass_pressure and min_mass_pressure <= pc2 <= max_mass_pressure:
+
+    number_branches = lalsim_SimNeutronStarFamNumberOfBranches(family)
+    branches = []
+    for i in range(number_branches):
+        pc_min = lalsim_SimNeutronStarFamMinCentralPressurePerBranch(family, i)
+        pc_max = lalsim_SimNeutronStarFamMaxCentralPressurePerBranch(family, i)
+        branches.append((pc_min, pc_max))
+    
+    pc1_check = False
+    pc2_check = False
+    for pc_min, pc_max in branches:
+        if pc_min <= pc1 <= pc_max:
+            pc1_check = True
+        if pc_min <= pc2 <= pc_max:
+            pc2_check = True
+
+    if max_speed_of_sound <= 1.1 and pc1_check and pc2_check:
         mass_1_source = lalsim_SimNeutronStarFamMassOfCentralPressure(pc1, family) / solar_mass
         mass_2_source = lalsim_SimNeutronStarFamMassOfCentralPressure(pc2, family) / solar_mass
         lambda_1 = lambda_from_pressure_and_family(mass_1_source, pc1, family)
