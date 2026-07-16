@@ -2,7 +2,6 @@
 A collection of functions to convert between parameters describing
 gravitational-wave sources.
 """
-
 import os
 import sys
 import multiprocessing
@@ -422,6 +421,7 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
         converted_parameters['ns_central_log10_pressure_2'], converted_parameters['ns_central_log10_pressure_1'] = log_pressure_reparameterization_conversion(converted_parameters['ns_central_pressure_ratio'], converted_parameters['ns_central_pressure_scale'])
         
         lambda_1, lambda_2, eos_check = neutron_star_family_physical_check_in_central_pressure(eos, family, 10**(converted_parameters['ns_central_log10_pressure_1']-1.), 10**(converted_parameters['ns_central_log10_pressure_2']-1.))
+        
         
         if eos_check == True:
             converted_parameters['mass_1_source'] = lalsim_SimNeutronStarFamMassOfCentralPressure(10**(converted_parameters['ns_central_log10_pressure_1']-1.), family) / solar_mass
@@ -1383,7 +1383,7 @@ def polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_
             eos = lalsim_SimNeutronStarEOS3PieceDynamicPolytrope(converted_parameters['eos_polytrope_gamma_0'], eos_logp1 - 1., converted_parameters['eos_polytrope_gamma_1'], eos_logp2 - 1., converted_parameters['eos_polytrope_gamma_2'])
         else:
             eos = lalsim_SimNeutronStarEOS3PieceCausalAnalytic(converted_parameters['eos_polytrope_gamma_0'], eos_logp1 - 1., converted_parameters['eos_polytrope_gamma_1'], eos_logp2 - 1., converted_parameters['eos_polytrope_gamma_2'])
-        if lalsim_SimNeutronStarEOS3PDViableFamilyCheck(converted_parameters['eos_polytrope_gamma_0'], eos_logp1 - 1., converted_parameters['eos_polytrope_gamma_1'], eos_logp2 - 1., converted_parameters['eos_polytrope_gamma_2'], causal) != 0:
+        if lalsim_SimNeutronStarEOS3PDViableFamilyCheck(eos) != 0:
             if 'mass_1_source' not in converted_parameters.keys():
                 if 'ns_central_log10_pressure_1' not in converted_parameters.keys():
                     lambda_1 = 0.0
@@ -1630,7 +1630,7 @@ def neutron_star_family_physical_check_in_central_pressure(eos, family, pc1, pc2
         lambda_1 = 0.0
         lambda_2 = 0.0
         eos_check = False
-
+    
     return lambda_1, lambda_2, eos_check
 
 def lambda_from_mass_and_family(mass_i, family):
@@ -1680,12 +1680,12 @@ def lambda_from_pressure_and_family(mass_i, pressure_i, family):
         component tidal deformability parameter
 
     """
-    radius = lalsim_SimNeutronStarFamRadiusOfCentralPressure(pressure_i, family)/1000
+    radius = lalsim_SimNeutronStarFamRadiusOfCentralPressure(pressure_i, family)
     love_number_k2 = lalsim_SimNeutronStarFamLoveNumberK2OfCentralPressure(pressure_i, family)
     mass_geometrized = mass_i * solar_mass * gravitational_constant / speed_of_light ** 2.
     compactness = mass_geometrized / radius
     lambda_i = (2. / 3.) * love_number_k2 / compactness ** 5.
-
+    
     return lambda_i
 
 
