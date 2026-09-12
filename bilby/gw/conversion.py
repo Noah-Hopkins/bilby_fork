@@ -15,11 +15,8 @@ from .utils import (lalsim_SimNeutronStarEOS4ParamSDGammaCheck,
                     lalsim_SimNeutronStarEOS4ParameterSpectralDecomposition,
                     lalsim_SimNeutronStarEOS4ParamSDViableFamilyCheck,
                     lalsim_SimNeutronStarEOS3PieceDynamicPolytrope,
-                    lalsim_SimNeutronStarEOS2PieceStaticPolytrope,
                     lalsim_SimNeutronStarEOS3PieceCausalAnalytic,
-                    lalsim_SimNeutronStarEOS2PieceCausalAnalytic,
                     lalsim_SimNeutronStarEOS3PDViableFamilyCheck,
-                    lalsim_SimNeutronStarEOS2PDViableFamilyCheck,
                     lalsim_CreateSimNeutronStarFamily,
                     lalsim_SimNeutronStarEOSMaxPseudoEnthalpy,
                     lalsim_SimNeutronStarEOSSpeedOfSoundGeometerized,
@@ -294,12 +291,12 @@ def convert_to_lal_binary_black_hole_parameters(parameters):
     return converted_parameters, added_keys
 
 
-def generate_component_masses_from_central_pressures(converted_parameters, added_keys, eos = 'placeholder', family = 'placeholder'): 
+def generate_component_masses_and_lambdas_from_central_pressures(converted_parameters, added_keys, eos = 'placeholder', family = 'placeholder'): 
     """
     Takes in converted_parameters array, added_keys list of any keys previously added to 
     converted_parameters, and equation of state. Calculates source frame and detector frame 
     component masses based on component log central pressures if component log central pressures are 
-    present. If component log central pressures are not present, but pressure_scale and pressure_ratio 
+    present. If component log central pressures are not present, but ns_pressure_scale and ns_pressure_ratio 
     are present, then it uses these to calculate component log central pressures and then calculates 
     the source frame and detector frame masses from those. Requires luminosity_distance to be in 
     converted_parameters for the calculation of detector frame component masses to work. Does 
@@ -343,61 +340,11 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
         print("No family input selected. Without a family input masses cannot be found from pressures. ")
         return converted_parameters, added_keys
 
-    if 'logpc1' in converted_parameters.keys() and 'logpc2' in converted_parameters.keys(): 
-        lambda_1, lambda_2, eos_check = neutron_star_family_physical_check_in_central_pressure(eos, family, 10**(converted_parameters['logpc1']-1.), 10**(converted_parameters['logpc2']-1.))
-
-        if eos_check == True:
-            converted_parameters['mass_1_source'] = lalsim_SimNeutronStarFamMassOfCentralPressure(10**(converted_parameters['logpc1']-1.), family)/ solar_mass
-            converted_parameters['redshift'] =\
-                luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
-            converted_parameters['mass_1'] =\
-                converted_parameters['mass_1_source'] * (1 + converted_parameters['redshift'])
-            added_keys = added_keys + [key for key in converted_parameters.keys()
-                        if key not in original_keys]
-        
-            converted_parameters['mass_2_source'] = lalsim_SimNeutronStarFamMassOfCentralPressure(10**(converted_parameters['logpc2']-1.), family) / solar_mass
-            converted_parameters['redshift'] =\
-                luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
-            converted_parameters['mass_2'] =\
-                converted_parameters['mass_2_source'] * (1 + converted_parameters['redshift'])
-            added_keys = added_keys + [key for key in converted_parameters.keys()
-                        if key not in original_keys]
-        else:
-            added_keys = added_keys + [key for key in converted_parameters.keys()
-                        if key not in original_keys]
-            return converted_parameters, added_keys, lambda_1, lambda_2, eos_check
-        
-    elif 'pressure_scale' in converted_parameters.keys() and 'pressure_ratio' in converted_parameters.keys():
-        converted_parameters = pressure_scale_and_ratio_to_log_components(converted_parameters) 
-
-        lambda_1, lambda_2, eos_check = neutron_star_family_physical_check_in_central_pressure(eos, family, 10**(converted_parameters['logpc1']-1.), 10**(converted_parameters['logpc2']-1.))
-        
-        if eos_check == True:
-            converted_parameters['mass_1_source'] = lalsim_SimNeutronStarFamMassOfCentralPressure(10**(converted_parameters['logpc1']-1.), family)/ solar_mass
-            converted_parameters['redshift'] =\
-                luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
-            converted_parameters['mass_1'] =\
-                converted_parameters['mass_1_source'] * (1 + converted_parameters['redshift'])
-            added_keys = added_keys + [key for key in converted_parameters.keys()
-                        if key not in original_keys]
-
-            converted_parameters['mass_2_source'] = lalsim_SimNeutronStarFamMassOfCentralPressure(10**(converted_parameters['logpc2']-1.), family) / solar_mass
-            converted_parameters['redshift'] =\
-                luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
-            converted_parameters['mass_2'] =\
-                converted_parameters['mass_2_source'] * (1 + converted_parameters['redshift'])
-            added_keys = added_keys + [key for key in converted_parameters.keys()
-                        if key not in original_keys]
-        else:
-            added_keys = added_keys + [key for key in converted_parameters.keys()
-                        if key not in original_keys]
-            return converted_parameters, added_keys, lambda_1, lambda_2, eos_check
-
     elif 'ns_central_log10_pressure_1' in converted_parameters.keys() and 'ns_central_log10_pressure_2' in converted_parameters.keys():
-        lambda_1, lambda_2, eos_check = neutron_star_family_physical_check_in_central_pressure(eos, family, 10**(converted_parameters['ns_central_log10_pressure_1']-1.), 10**(converted_parameters['ns_central_log10_pressure_2']-1.))
+        lambda_1, lambda_2, mass_1_source, mass_2_source, eos_check = neutron_star_family_physical_check_in_central_pressure(eos, family, 10**(converted_parameters['ns_central_log10_pressure_1']-1.), 10**(converted_parameters['ns_central_log10_pressure_2']-1.))
 
         if eos_check == True:
-            converted_parameters['mass_1_source'] = lalsim_SimNeutronStarFamMassOfCentralPressure(10**(converted_parameters['ns_central_log10_pressure_1']-1.), family)/ solar_mass
+            converted_parameters['mass_1_source'] = mass_1_source
             converted_parameters['redshift'] =\
                 luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
             converted_parameters['mass_1'] =\
@@ -405,7 +352,7 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
             added_keys = added_keys + [key for key in converted_parameters.keys()
                       if key not in original_keys]
 
-            converted_parameters['mass_2_source'] = lalsim_SimNeutronStarFamMassOfCentralPressure(10**(converted_parameters['ns_central_log10_pressure_2']-1.), family) / solar_mass
+            converted_parameters['mass_2_source'] = mass_2_source
             converted_parameters['redshift'] =\
                 luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
             converted_parameters['mass_2'] =\
@@ -418,13 +365,13 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
             return converted_parameters, added_keys, lambda_1, lambda_2, eos_check
 
     elif 'ns_central_pressure_scale' in converted_parameters.keys() and 'ns_central_pressure_ratio' in converted_parameters.keys():
-        converted_parameters['ns_central_log10_pressure_2'], converted_parameters['ns_central_log10_pressure_1'] = log_pressure_reparameterization_conversion(converted_parameters['ns_central_pressure_ratio'], converted_parameters['ns_central_pressure_scale'])
+        converted_parameters['ns_central_log10_pressure_2'], converted_parameters['ns_central_log10_pressure_1'] = log_pressure_reparameterization_conversion(converted_parameters['ns_central_pressure_ratio'], converted_parameters['ns_central_pressure_scale'], 33.0)
         
-        lambda_1, lambda_2, eos_check = neutron_star_family_physical_check_in_central_pressure(eos, family, 10**(converted_parameters['ns_central_log10_pressure_1']-1.), 10**(converted_parameters['ns_central_log10_pressure_2']-1.))
+        lambda_1, lambda_2, mass_1_source, mass_2_source, eos_check = neutron_star_family_physical_check_in_central_pressure(eos, family, 10**(converted_parameters['ns_central_log10_pressure_1']-1.), 10**(converted_parameters['ns_central_log10_pressure_2']-1.))
         
         
         if eos_check == True:
-            converted_parameters['mass_1_source'] = lalsim_SimNeutronStarFamMassOfCentralPressure(10**(converted_parameters['ns_central_log10_pressure_1']-1.), family) / solar_mass
+            converted_parameters['mass_1_source'] = mass_1_source
             converted_parameters['redshift'] =\
                 luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
             converted_parameters['mass_1'] =\
@@ -432,7 +379,7 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
             added_keys = added_keys + [key for key in converted_parameters.keys()
                         if key not in original_keys]
 
-            converted_parameters['mass_2_source'] = lalsim_SimNeutronStarFamMassOfCentralPressure(10**(converted_parameters['ns_central_log10_pressure_2']-1.), family) / solar_mass
+            converted_parameters['mass_2_source'] = mass_2_source
             converted_parameters['redshift'] =\
                 luminosity_distance_to_redshift(converted_parameters['luminosity_distance'])
             converted_parameters['mass_2'] =\
@@ -445,35 +392,6 @@ def generate_component_masses_from_central_pressures(converted_parameters, added
             return converted_parameters, added_keys, lambda_1, lambda_2, eos_check
 
     return converted_parameters, added_keys, lambda_1, lambda_2, eos_check
-
-
-def pressure_scale_and_ratio_to_log_components(sample): 
-    """
-    Calculates log component central pressures based on the mimimum pressure, the pressure scale, and the pressure ratio. 
-
-    Parameters
-    ----------
-    sample: dict
-        Dictionary of parameters for the conversion. Needs to include the parameters pressure_scale and pressure_ratio (cgs 
-        units were expected when writing the function, but pressure_scale and pressure_ratio seem to be the same in SI as in cgs). 
-
-    Returns
-    -------
-    out: dict
-        A new dictionary of parameters, now with logpc1 and logpc2 included. 
-
-    """
-    out = sample.copy()
-    # These print statements will need to be removed later. 
-    #print("out before")
-    #print(out)
-    #eos = lalsim.SimNeutronStarEOS2PieceStaticPolytrope(out['eos_2p_polytrope_gamma_0'], out['eos_2p_polytrope_gamma_1'])
-    MIN_PRESSURE = 34.65058634028136
-    out['logpc1'] = MIN_PRESSURE + out['pressure_scale']
-    out['logpc2'] = MIN_PRESSURE + out['pressure_ratio'] * out['pressure_scale']
-    #print("out after")
-    #print(out)
-    return out
 
 
 def convert_to_lal_binary_neutron_star_parameters(parameters):
@@ -587,425 +505,17 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
             converted_parameters['eos_check'] = np.array(all_eos_check)
             for key in float_eos_params.keys():
                 converted_parameters[key] = float_eos_params[key]
-    elif 'eos_polytrope_log10_pressure_1' in converted_parameters.keys() or 'eos_polytrope_scaled_pressure_ratio' in converted_parameters.keys():
+    elif 'eos_polytrope_gamma_0' in converted_parameters.keys() and 'eos_polytrope_log10_pressure_1' in converted_parameters.keys() and 'mass_1_source' in converted_parameters.keys():
         float_eos_params = {}
         max_len = 1
-        if 'mass_1' in converted_parameters.keys():
-            converted_parameters = generate_source_frame_parameters(converted_parameters)
-            if 'eos_polytrope_log10_pressure_1' in converted_parameters.keys():
-                eos_keys = ['eos_polytrope_gamma_0',
-                            'eos_polytrope_gamma_1',
-                            'eos_polytrope_gamma_2',
-                            'eos_polytrope_log10_pressure_1',
-                            'eos_polytrope_log10_pressure_2',
-                            'mass_1_source',
-                            'mass_2_source']
-                for key in eos_keys:
-                    val = converted_parameters[key]
-                    if np.ndim(val) == 0 or (hasattr(val, '__len__') and len(val) == 1):
-                        converted_parameters[key] = float(np.squeeze(val))
-                        float_eos_params[key] = converted_parameters[key]
-                    elif hasattr(val, '__len__') and len(val) > max_len:
-                        max_len = len(val)
-                if len(float_eos_params) == len(eos_keys):  # all scalars
-                    try:
-                        converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['eos_check'] = \
-                            polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
-                    except RuntimeError as e:
-                        logger.debug("EOS evaluation failed for a sample (%s)", e)
-                        converted_parameters['lambda_1'] = 0.0
-                        converted_parameters['lambda_2'] = 0.0 
-                        converted_parameters['eos_check'] = False
-                elif len(float_eos_params) < len(eos_keys):
-                    for key in float_eos_params.keys():
-                        converted_parameters[key] = np.ones(max_len) * converted_parameters[key]
-                    pg0 = converted_parameters['eos_polytrope_gamma_0']
-                    pg1 = converted_parameters['eos_polytrope_gamma_1']
-                    pg2 = converted_parameters['eos_polytrope_gamma_2']
-                    eos_logp1 = converted_parameters['eos_polytrope_log10_pressure_1']
-                    eos_logp2 = converted_parameters['eos_polytrope_log10_pressure_2']
-                    m1s = converted_parameters['mass_1_source']
-                    m2s = converted_parameters['mass_2_source']
-                    def _call(pg_0, pg_1, pg_2, eos_logp_1, eos_logp_2, m1_s, m2_s):
-                        call_parameters = dict(converted_parameters)
-                        call_parameters['eos_polytrope_gamma_0']               = pg_0
-                        call_parameters['eos_polytrope_gamma_1']               = pg_1
-                        call_parameters['eos_polytrope_gamma_2']               = pg_2
-                        call_parameters['eos_polytrope_log10_pressure_1']      = eos_logp_1
-                        call_parameters['eos_polytrope_log10_pressure_2']      = eos_logp_2
-                        call_parameters['mass_1_source']                       = m1_s
-                        call_parameters['mass_2_source']                       = m2_s
-                        try:
-                            lambda_1, lambda_2, eos_check = \
-                                polytrope_or_causal_params_to_lambda_1_lambda_2(call_parameters, added_keys, causal = 0)
-                        except:
-                            return 0.0, 0.0, False
-                        return lambda_1, lambda_2, eos_check
-                    vfunc = np.vectorize(_call, otypes=[float, float, bool])
-                    (converted_parameters['lambda_1'],
-                    converted_parameters['lambda_2'],
-                    converted_parameters['eos_check']) = vfunc(pg0, pg1, pg2, eos_logp1, eos_logp2, m1s, m2s)
-                    samples_rejected = int(np.sum(~np.asarray(converted_parameters['eos_check'], dtype = bool)))
-                    if samples_rejected:
-                        logger.info("EOS conversion: %d/%d samples rejected (eos_check = False)", samples_rejected, max_len)
-                    for key in float_eos_params.keys():
-                        converted_parameters[key] = float_eos_params[key]
-            else:
-                eos_keys = ['eos_polytrope_gamma_0',
-                            'eos_polytrope_gamma_1',
-                            'eos_polytrope_gamma_2',
-                            'eos_polytrope_scaled_pressure_ratio',
-                            'eos_polytrope_scaled_pressure_2',
-                            'mass_1_source',
-                            'mass_2_source'
-                            ]
-                for key in eos_keys:
-                    val = converted_parameters[key]
-                    if np.ndim(val) == 0 or (hasattr(val, '__len__') and len(val) == 1):
-                        converted_parameters[key] = float(np.squeeze(val))
-                        float_eos_params[key] = converted_parameters[key]
-                    elif hasattr(val, '__len__') and len(val) > max_len:
-                        max_len = len(val)
-                if len(float_eos_params) == len(eos_keys):  # all scalars
-                    try:
-                        converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['eos_check'] = \
-                            polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
-                    except RuntimeError as e:
-                        logger.debug("EOS evaluation failed for a sample (%s)", e)
-                        converted_parameters['lambda_1'] = 0.0
-                        converted_parameters['lambda_2'] = 0.0
-                        converted_parameters['eos_check'] = False
-                elif len(float_eos_params) < len(eos_keys):
-                    for key in float_eos_params.keys():
-                        converted_parameters[key] = np.ones(max_len) * converted_parameters[key]
-                    pg0 = converted_parameters['eos_polytrope_gamma_0']
-                    pg1 = converted_parameters['eos_polytrope_gamma_1']
-                    pg2 = converted_parameters['eos_polytrope_gamma_2']
-                    scaled_pressure_ratio = converted_parameters['eos_polytrope_scaled_pressure_ratio']
-                    scaled_pressure_2 = converted_parameters['eos_polytrope_scaled_pressure_2']
-                    m1s = converted_parameters['mass_1_source']
-                    m2s = converted_parameters['mass_2_source']
-                    def _call(pg_0, pg_1, pg_2, scaled_pressure_ratio, scaled_pressure_2, m1_s, m2_s):
-                        call_parameters = dict(converted_parameters)
-                        call_parameters['eos_polytrope_gamma_0']                   = pg_0
-                        call_parameters['eos_polytrope_gamma_1']                   = pg_1
-                        call_parameters['eos_polytrope_gamma_2']                   = pg_2
-                        call_parameters['eos_polytrope_scaled_pressure_ratio']     = scaled_pressure_ratio
-                        call_parameters['eos_polytrope_scaled_pressure_2']         = scaled_pressure_2
-                        call_parameters['mass_1_source']                           = m1_s
-                        call_parameters['mass_2_source']                           = m2_s
-                        try:
-                            lambda_1, lambda_2, eos_check = \
-                                polytrope_or_causal_params_to_lambda_1_lambda_2(call_parameters, added_keys, causal = 0)
-                        except:
-                            return 0.0, 0.0, False
-                        return lambda_1, lambda_2, eos_check
-                    vfunc = np.vectorize(_call, otypes=[float, float, bool])
-                    (converted_parameters['lambda_1'],
-                    converted_parameters['lambda_2'],
-                    converted_parameters['eos_check']) = vfunc(pg0, pg1, pg2, scaled_pressure_ratio, scaled_pressure_2, m1s, m2s)
-                    samples_rejected = int(np.sum(~np.asarray(converted_parameters['eos_check'], dtype = bool)))
-                    if samples_rejected:
-                        logger.info("EOS conversion: %d/%d samples rejected (eos_check = False)", samples_rejected, max_len)
-                    for key in float_eos_params.keys():
-                        converted_parameters[key] = float_eos_params[key]
-        else:
-            if 'ns_central_log10_pressure_1' in converted_parameters.keys() and 'eos_polytrope_scaled_pressure_ratio' in converted_parameters.keys():
-                eos_keys = ['eos_polytrope_gamma_0',
-                            'eos_polytrope_gamma_1',
-                            'eos_polytrope_gamma_2',
-                            'eos_polytrope_scaled_pressure_2',
-                            'eos_polytrope_scaled_pressure_ratio',
-                            'ns_central_log10_pressure_1',
-                            'ns_central_log10_pressure_2']
-                for key in eos_keys:
-                    val = converted_parameters[key]
-                    if np.ndim(val) == 0 or (hasattr(val, '__len__') and len(val) == 1):
-                        converted_parameters[key] = float(np.squeeze(val))
-                        float_eos_params[key] = converted_parameters[key]
-                    elif hasattr(val, '__len__') and len(val) > max_len:
-                        max_len = len(val)
-                if len(float_eos_params) == len(eos_keys):  # all scalars
-                    try:
-                        converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['mass_1'], converted_parameters['mass_2'], added_keys, converted_parameters['eos_check'] = \
-                            polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
-                    except RuntimeError as e:
-                        logger.debug("EOS evaluation failed for a sample (%s)", e)
-                        converted_parameters['lambda_1'] = 0.0
-                        converted_parameters['lambda_2'] = 0.0
-                        converted_parameters['mass_1_source'] = 1.4
-                        converted_parameters['mass_2_source'] = 1.4
-                        converted_parameters['mass_1'] = 1.4
-                        converted_parameters['mass_2'] = 1.4
-                        converted_parameters['eos_check'] = False
-                elif len(float_eos_params) < len(eos_keys):
-                    for key in float_eos_params.keys():
-                        converted_parameters[key] = np.ones(max_len) * converted_parameters[key]
-                    pg0 = converted_parameters['eos_polytrope_gamma_0']
-                    pg1 = converted_parameters['eos_polytrope_gamma_1']
-                    pg2 = converted_parameters['eos_polytrope_gamma_2']
-                    scaled_pressure_ratio = converted_parameters['eos_polytrope_scaled_pressure_ratio']
-                    scaled_pressure_2 = converted_parameters['eos_polytrope_scaled_pressure_2']
-                    ns_logp1 = converted_parameters['ns_central_log10_pressure_1']
-                    ns_logp2 = converted_parameters['ns_central_log10_pressure_2']
-                    lumin_dist = converted_parameters['luminosity_distance']
-                    if type(lumin_dist) == float:
-                        lumin_dist = np.ones(max_len) * lumin_dist
-                    def _call(pg_0, pg_1, pg_2, scaled_pressure_2, scaled_pressure_ratio, ns_logp_1, ns_logp_2, lum_dist):
-                        call_parameters = dict(converted_parameters)
-                        call_parameters['eos_polytrope_gamma_0']                = pg_0
-                        call_parameters['eos_polytrope_gamma_1']                = pg_1
-                        call_parameters['eos_polytrope_gamma_2']                = pg_2
-                        call_parameters['eos_polytrope_scaled_pressure_2']      = scaled_pressure_2
-                        call_parameters['eos_polytrope_scaled_pressure_ratio']  = scaled_pressure_ratio
-                        call_parameters['ns_central_log10_pressure_1']          = ns_logp_1
-                        call_parameters['ns_central_log10_pressure_2']          = ns_logp_2
-                        call_parameters['luminosity_distance']                  = lum_dist
-                        try:
-                            lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, _added_keys, eos_check = \
-                                polytrope_or_causal_params_to_lambda_1_lambda_2(call_parameters, added_keys, causal = 0)
-                        except:
-                            return 0.0, 0.0, 1.4, 1.4, 1.4, 1.4, False
-                        return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, eos_check
-                    vfunc = np.vectorize(_call, otypes=[float, float, float, float, float, float, bool])
-                    (converted_parameters['lambda_1'],
-                    converted_parameters['lambda_2'],
-                    converted_parameters['mass_1_source'],
-                    converted_parameters['mass_2_source'],
-                    converted_parameters['mass_1'],
-                    converted_parameters['mass_2'],
-                    converted_parameters['eos_check']) = vfunc(pg0, pg1, pg2, scaled_pressure_2, scaled_pressure_ratio, ns_logp1, ns_logp2, lumin_dist)
-                    samples_rejected = int(np.sum(~np.asarray(converted_parameters['eos_check'], dtype = bool)))
-                    if samples_rejected:
-                        logger.info("EOS conversion: %d/%d samples rejected (eos_check = False)", samples_rejected, max_len)
-                    for key in float_eos_params.keys():
-                        converted_parameters[key] = float_eos_params[key]
-            elif 'ns_central_log10_pressure_1' in converted_parameters.keys() and 'eos_polytrope_log10_pressure_1' in converted_parameters.keys():
-                eos_keys = ['eos_polytrope_gamma_0',
-                            'eos_polytrope_gamma_1',
-                            'eos_polytrope_gamma_2',
-                            'eos_polytrope_log10_pressure_1',
-                            'eos_polytrope_log10_pressure_2',
-                            'ns_central_log10_pressure_1',
-                            'ns_central_log10_pressure_2']
-                for key in eos_keys:
-                    val = converted_parameters[key]
-                    if np.ndim(val) == 0 or (hasattr(val, '__len__') and len(val) == 1):
-                        converted_parameters[key] = float(np.squeeze(val))
-                        float_eos_params[key] = converted_parameters[key]
-                    elif hasattr(val, '__len__') and len(val) > max_len:
-                        max_len = len(val)
-                if len(float_eos_params) == len(eos_keys):  # all scalars
-                    try:
-                        converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['mass_1'], converted_parameters['mass_2'], added_keys, converted_parameters['eos_check'] = \
-                            polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
-                    except RuntimeError as e:
-                        logger.debug("EOS evaluation failed for a sample (%s)", e)
-                        converted_parameters['lambda_1'] = 0.0
-                        converted_parameters['lambda_2'] = 0.0
-                        converted_parameters['mass_1_source'] = 1.4
-                        converted_parameters['mass_2_source'] = 1.4
-                        converted_parameters['mass_1'] = 1.4
-                        converted_parameters['mass_2'] = 1.4
-                        converted_parameters['eos_check'] = False
-                elif len(float_eos_params) < len(eos_keys):
-                    for key in float_eos_params.keys():
-                        converted_parameters[key] = np.ones(max_len) * converted_parameters[key]
-                    pg0 = converted_parameters['eos_polytrope_gamma_0']
-                    pg1 = converted_parameters['eos_polytrope_gamma_1']
-                    pg2 = converted_parameters['eos_polytrope_gamma_2']
-                    eos_logp1 = converted_parameters['eos_polytrope_log10_pressure_1']
-                    eos_logp2 = converted_parameters['eos_polytrope_log10_pressure_2']
-                    ns_logp1 = converted_parameters['ns_central_log10_pressure_1']
-                    ns_logp2 = converted_parameters['ns_central_log10_pressure_2']
-                    lumin_dist = converted_parameters['luminosity_distance']
-                    if type(lumin_dist) == float:
-                        lumin_dist = np.ones(max_len) * lumin_dist
-                    def _call(pg_0, pg_1, pg_2, eos_logp_1, eos_logp_2, ns_logp_1, ns_logp_2, lum_dist):
-                        call_parameters = dict(converted_parameters)
-                        call_parameters['eos_polytrope_gamma_0']                = pg_0
-                        call_parameters['eos_polytrope_gamma_1']                = pg_1
-                        call_parameters['eos_polytrope_gamma_2']                = pg_2
-                        call_parameters['eos_polytrope_log10_pressure_1']       = eos_logp_1
-                        call_parameters['eos_polytrope_log10_pressure_2']       = eos_logp_2
-                        call_parameters['ns_central_log10_pressure_1']          = ns_logp_1
-                        call_parameters['ns_central_log10_pressure_2']          = ns_logp_2
-                        call_parameters['luminosity_distance']                  = lum_dist
-                        try:
-                            lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, _added_keys, eos_check = \
-                                polytrope_or_causal_params_to_lambda_1_lambda_2(call_parameters, added_keys, causal = 0)
-                        except:
-                            return 0.0, 0.0, 1.4, 1.4, 1.4, 1.4, False
-                        return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, eos_check
-                    vfunc = np.vectorize(_call, otypes=[float, float, float, float, float, float, bool])
-                    (converted_parameters['lambda_1'],
-                    converted_parameters['lambda_2'],
-                    converted_parameters['mass_1_source'],
-                    converted_parameters['mass_2_source'],
-                    converted_parameters['mass_1'],
-                    converted_parameters['mass_2'],
-                    converted_parameters['eos_check']) = vfunc(pg0, pg1, pg2, eos_logp1, eos_logp2, ns_logp1, ns_logp2, lumin_dist)
-                    samples_rejected = int(np.sum(~np.asarray(converted_parameters['eos_check'], dtype = bool)))
-                    if samples_rejected:
-                        logger.info("EOS conversion: %d/%d samples rejected (eos_check = False)", samples_rejected, max_len)
-                    for key in float_eos_params.keys():
-                        converted_parameters[key] = float_eos_params[key]
-            elif 'ns_central_pressure_scale' in converted_parameters.keys() and 'eos_polytrope_scaled_pressure_ratio' in converted_parameters.keys():
-                eos_keys = ['eos_polytrope_gamma_0',
-                            'eos_polytrope_gamma_1',
-                            'eos_polytrope_gamma_2',
-                            'eos_polytrope_scaled_pressure_2',
-                            'eos_polytrope_scaled_pressure_ratio',
-                            'ns_central_pressure_scale',
-                            'ns_central_pressure_ratio']
-                for key in eos_keys:
-                    val = converted_parameters[key]
-                    if np.ndim(val) == 0 or (hasattr(val, '__len__') and len(val) == 1):
-                        converted_parameters[key] = float(np.squeeze(val))
-                        float_eos_params[key] = converted_parameters[key]
-                    elif hasattr(val, '__len__') and len(val) > max_len:
-                        max_len = len(val)
-                if len(float_eos_params) == len(eos_keys):
-                    try:
-                        converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['mass_1'], converted_parameters['mass_2'], converted_parameters['ns_central_log10_pressure_1'], converted_parameters['ns_central_log10_pressure_2'], added_keys, converted_parameters['eos_check'] = \
-                            polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
-                    except RuntimeError as e:
-                        logger.debug("EOS evaluation failed for a sample (%s)", e)
-                        converted_parameters['lambda_1'] = 0.0
-                        converted_parameters['lambda_2'] = 0.0
-                        converted_parameters['mass_1_source'] = 1.4
-                        converted_parameters['mass_2_source'] = 1.4
-                        converted_parameters['mass_1'] = 1.4
-                        converted_parameters['mass_2'] = 1.4
-                        converted_parameters['ns_central_log10_pressure_1'] = 0.0
-                        converted_parameters['ns_central_log10_pressure_2'] = 0.0
-                        converted_parameters['eos_check'] = False
-                elif len(float_eos_params) < len(eos_keys):
-                    for key in float_eos_params.keys():
-                        converted_parameters[key] = np.ones(max_len) * converted_parameters[key]
-                    pg0 = converted_parameters['eos_polytrope_gamma_0']
-                    pg1 = converted_parameters['eos_polytrope_gamma_1']
-                    pg2 = converted_parameters['eos_polytrope_gamma_2']
-                    scaled_pressure_ratio = converted_parameters['eos_polytrope_scaled_pressure_ratio']
-                    scaled_pressure_2 = converted_parameters['eos_polytrope_scaled_pressure_2']
-                    ns_pressure_scale = converted_parameters['ns_central_pressure_scale']
-                    ns_pressure_ratio = converted_parameters['ns_central_pressure_ratio']
-                    lumin_dist = converted_parameters['luminosity_distance']
-                    if type(lumin_dist) == float:
-                        lumin_dist = np.ones(max_len) * lumin_dist
-                    def _call(pg_0, pg_1, pg_2, scaled_pressure_2, scaled_pressure_ratio, ns_pressure_scale, ns_pressure_ratio, lum_dist):
-                        call_parameters = dict(converted_parameters)
-                        call_parameters['eos_polytrope_gamma_0']                = pg_0
-                        call_parameters['eos_polytrope_gamma_1']                = pg_1
-                        call_parameters['eos_polytrope_gamma_2']                = pg_2
-                        call_parameters['eos_polytrope_scaled_pressure_2']      = scaled_pressure_2
-                        call_parameters['eos_polytrope_scaled_pressure_ratio']  = scaled_pressure_ratio
-                        call_parameters['ns_central_pressure_scale']            = ns_pressure_scale
-                        call_parameters['ns_central_pressure_ratio']            = ns_pressure_ratio
-                        call_parameters['luminosity_distance']                  = lum_dist
-                        try:
-                            lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, ns_logp1, ns_logp2, _added_keys, eos_check = \
-                                polytrope_or_causal_params_to_lambda_1_lambda_2(call_parameters, added_keys, causal = 0)
-                        except:
-                            return 0.0, 0.0, 1.4, 1.4, 1.4, 1.4, 0.0, 0.0, False
-                        return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, ns_logp1, ns_logp2, eos_check
-                    vfunc = np.vectorize(_call, otypes=[float, float, float, float, float, float, float, float, bool])
-                    (converted_parameters['lambda_1'],
-                    converted_parameters['lambda_2'],
-                    converted_parameters['mass_1_source'],
-                    converted_parameters['mass_2_source'],
-                    converted_parameters['mass_1'],
-                    converted_parameters['mass_2'],
-                    converted_parameters['ns_central_log10_pressure_1'],
-                    converted_parameters['ns_central_log10_pressure_2'],
-                    converted_parameters['eos_check']) = vfunc(pg0, pg1, pg2, scaled_pressure_2, scaled_pressure_ratio, ns_pressure_scale, ns_pressure_ratio, lumin_dist)
-                    samples_rejected = int(np.sum(~np.asarray(converted_parameters['eos_check'], dtype = bool)))
-                    if samples_rejected:
-                        logger.info("EOS conversion: %d/%d samples rejected (eos_check = False)", samples_rejected, max_len)
-                    for key in float_eos_params.keys():
-                        converted_parameters[key] = float_eos_params[key]
-            elif 'ns_central_pressure_scale' in converted_parameters.keys() and 'eos_polytrope_log10_pressure_1' in converted_parameters.keys():
-                eos_keys = ['eos_polytrope_gamma_0',
-                            'eos_polytrope_gamma_1',
-                            'eos_polytrope_gamma_2',
-                            'eos_polytrope_log10_pressure_1',
-                            'eos_polytrope_log10_pressure_2',
-                            'ns_central_pressure_scale',
-                            'ns_central_pressure_ratio']
-                for key in eos_keys:
-                    val = converted_parameters[key]
-                    if np.ndim(val) == 0 or (hasattr(val, '__len__') and len(val) == 1):
-                        converted_parameters[key] = float(np.squeeze(val))
-                        float_eos_params[key] = converted_parameters[key]
-                    elif hasattr(val, '__len__') and len(val) > max_len:
-                        max_len = len(val)
-                if len(float_eos_params) == len(eos_keys):
-                    try:
-                        converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['mass_1'], converted_parameters['mass_2'], converted_parameters['ns_central_log10_pressure_1'], converted_parameters['ns_central_log10_pressure_2'], added_keys, converted_parameters['eos_check'] = \
-                            polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
-                    except RuntimeError as e:
-                        logger.debug("EOS evaluation failed for a sample (%s)", e)
-                        converted_parameters['lambda_1'] = 0.0
-                        converted_parameters['lambda_2'] = 0.0
-                        converted_parameters['mass_1_source'] = 1.4
-                        converted_parameters['mass_2_source'] = 1.4
-                        converted_parameters['mass_1'] = 1.4
-                        converted_parameters['mass_2'] = 1.4
-                        converted_parameters['ns_central_log10_pressure_1'] = 0.0
-                        converted_parameters['ns_central_log10_pressure_2'] = 0.0
-                        converted_parameters['eos_check'] = False
-                elif len(float_eos_params) < len(eos_keys):
-                    for key in float_eos_params.keys():
-                        converted_parameters[key] = np.ones(max_len) * converted_parameters[key]
-                    pg0 = converted_parameters['eos_polytrope_gamma_0']
-                    pg1 = converted_parameters['eos_polytrope_gamma_1']
-                    pg2 = converted_parameters['eos_polytrope_gamma_2']
-                    eos_logp1 = converted_parameters['eos_polytrope_log10_pressure_1']
-                    eos_logp2 = converted_parameters['eos_polytrope_log10_pressure_2']
-                    ns_pressure_scale = converted_parameters['ns_central_pressure_scale']
-                    ns_pressure_ratio = converted_parameters['ns_central_pressure_ratio']
-                    lumin_dist = converted_parameters['luminosity_distance']
-                    if type(lumin_dist) == float:
-                        lumin_dist = np.ones(max_len) * lumin_dist
-                    def _call(pg_0, pg_1, pg_2, eos_logp_1, eos_logp_2, ns_pressure_scale, ns_pressure_ratio, lum_dist):
-                        call_parameters = dict(converted_parameters)
-                        call_parameters['eos_polytrope_gamma_0']                = pg_0
-                        call_parameters['eos_polytrope_gamma_1']                = pg_1
-                        call_parameters['eos_polytrope_gamma_2']                = pg_2
-                        call_parameters['eos_polytrope_log10_pressure_1']       = eos_logp_1
-                        call_parameters['eos_polytrope_log10_pressure_2']       = eos_logp_2
-                        call_parameters['ns_central_pressure_scale']            = ns_pressure_scale
-                        call_parameters['ns_central_pressure_ratio']            = ns_pressure_ratio
-                        call_parameters['luminosity_distance']                  = lum_dist
-                        try:
-                            lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, ns_logp1, ns_logp2, _added_keys, eos_check = \
-                                polytrope_or_causal_params_to_lambda_1_lambda_2(call_parameters, added_keys, causal = 0)
-                        except:
-                            return 0.0, 0.0, 1.4, 1.4, 1.4, 1.4, 0.0, 0.0, False
-                        return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, ns_logp1, ns_logp2, eos_check
-                    vfunc = np.vectorize(_call, otypes=[float, float, float, float, float, float, float, float, bool])
-                    (converted_parameters['lambda_1'],
-                    converted_parameters['lambda_2'],
-                    converted_parameters['mass_1_source'],
-                    converted_parameters['mass_2_source'],
-                    converted_parameters['mass_1'],
-                    converted_parameters['mass_2'],
-                    converted_parameters['ns_central_log10_pressure_1'],
-                    converted_parameters['ns_central_log10_pressure_2'],
-                    converted_parameters['eos_check']) = vfunc(pg0, pg1, pg2, eos_logp1, eos_logp_2, ns_pressure_scale, ns_pressure_ratio, lumin_dist)
-                    samples_rejected = int(np.sum(~np.asarray(converted_parameters['eos_check'], dtype = bool)))
-                    if samples_rejected:
-                        logger.info("EOS conversion: %d/%d samples rejected (eos_check = False)", samples_rejected, max_len)
-                    for key in float_eos_params.keys():
-                        converted_parameters[key] = float_eos_params[key]
-
-    elif 'eos_2p_polytrope_gamma_0' in converted_parameters.keys() and 'logpc1' in converted_parameters.keys():
-        #converted_parameters = generate_source_frame_parameters(converted_parameters)
-        float_eos_params = {}
-        max_len = 1
-        eos_keys = ['eos_2p_polytrope_gamma_0',
-                    'eos_2p_polytrope_gamma_1',
-                    'logpc1', 'logpc2']
+        converted_parameters = generate_source_frame_parameters(converted_parameters)
+        eos_keys = ['eos_polytrope_gamma_0',
+                    'eos_polytrope_gamma_1',
+                    'eos_polytrope_gamma_2',
+                    'eos_polytrope_log10_pressure_1',
+                    'eos_polytrope_log10_pressure_2',
+                    'mass_1_source',
+                    'mass_2_source']
         for key in eos_keys:
             val = converted_parameters[key]
             if np.ndim(val) == 0 or (hasattr(val, '__len__') and len(val) == 1):
@@ -1013,10 +523,132 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                 float_eos_params[key] = converted_parameters[key]
             elif hasattr(val, '__len__') and len(val) > max_len:
                 max_len = len(val)
-        if len(float_eos_params) == len(eos_keys):  # case where all eos params are floats (pinned)
+        if len(float_eos_params) == len(eos_keys):  # all scalars
+            try:
+                converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['eos_check'] = \
+                    polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
+            except RuntimeError as e:
+                logger.debug("EOS evaluation failed for a sample (%s)", e)
+                converted_parameters['lambda_1'] = 0.0
+                converted_parameters['lambda_2'] = 0.0 
+                converted_parameters['eos_check'] = False
+        elif len(float_eos_params) < len(eos_keys):
+            for key in float_eos_params.keys():
+                converted_parameters[key] = np.ones(max_len) * converted_parameters[key]
+            pg0 = converted_parameters['eos_polytrope_gamma_0']
+            pg1 = converted_parameters['eos_polytrope_gamma_1']
+            pg2 = converted_parameters['eos_polytrope_gamma_2']
+            eos_logp1 = converted_parameters['eos_polytrope_log10_pressure_1']
+            eos_logp2 = converted_parameters['eos_polytrope_log10_pressure_2']
+            m1s = converted_parameters['mass_1_source']
+            m2s = converted_parameters['mass_2_source']
+            def _call(pg_0, pg_1, pg_2, eos_logp_1, eos_logp_2, m1_s, m2_s):
+                call_parameters = dict(converted_parameters)
+                call_parameters['eos_polytrope_gamma_0']               = pg_0
+                call_parameters['eos_polytrope_gamma_1']               = pg_1
+                call_parameters['eos_polytrope_gamma_2']               = pg_2
+                call_parameters['eos_polytrope_log10_pressure_1']      = eos_logp_1
+                call_parameters['eos_polytrope_log10_pressure_2']      = eos_logp_2
+                call_parameters['mass_1_source']                       = m1_s
+                call_parameters['mass_2_source']                       = m2_s
+                try:
+                    lambda_1, lambda_2, eos_check = \
+                        polytrope_or_causal_params_to_lambda_1_lambda_2(call_parameters, added_keys, causal = 0)
+                except:
+                    return 0.0, 0.0, False
+                return lambda_1, lambda_2, eos_check
+            vfunc = np.vectorize(_call, otypes=[float, float, bool])
+            (converted_parameters['lambda_1'],
+            converted_parameters['lambda_2'],
+            converted_parameters['eos_check']) = vfunc(pg0, pg1, pg2, eos_logp1, eos_logp2, m1s, m2s)
+            samples_rejected = int(np.sum(~np.asarray(converted_parameters['eos_check'], dtype = bool)))
+            if samples_rejected:
+                logger.info("EOS conversion: %d/%d samples rejected (eos_check = False)", samples_rejected, max_len)
+            for key in float_eos_params.keys():
+                converted_parameters[key] = float_eos_params[key]
+    elif 'eos_polytrope_gamma_0' in converted_parameters.keys() and 'eos_polytrope_scaled_pressure_ratio' in converted_parameters.keys() and 'mass_1_source' in converted_parameters.keys():
+        float_eos_params = {}
+        max_len = 1
+        converted_parameters = generate_source_frame_parameters(converted_parameters)
+        eos_keys = ['eos_polytrope_gamma_0',
+                    'eos_polytrope_gamma_1',
+                    'eos_polytrope_gamma_2',
+                    'eos_polytrope_scaled_pressure_ratio',
+                    'eos_polytrope_scaled_pressure_2',
+                    'mass_1_source',
+                    'mass_2_source']
+        for key in eos_keys:
+            val = converted_parameters[key]
+            if np.ndim(val) == 0 or (hasattr(val, '__len__') and len(val) == 1):
+                converted_parameters[key] = float(np.squeeze(val))
+                float_eos_params[key] = converted_parameters[key]
+            elif hasattr(val, '__len__') and len(val) > max_len:
+                max_len = len(val)
+        if len(float_eos_params) == len(eos_keys):  # all scalars
+            try:
+                converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['eos_check'] = \
+                    polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
+            except RuntimeError as e:
+                logger.debug("EOS evaluation failed for a sample (%s)", e)
+                converted_parameters['lambda_1'] = 0.0
+                converted_parameters['lambda_2'] = 0.0
+                converted_parameters['eos_check'] = False
+        elif len(float_eos_params) < len(eos_keys):
+            for key in float_eos_params.keys():
+                converted_parameters[key] = np.ones(max_len) * converted_parameters[key]
+            pg0 = converted_parameters['eos_polytrope_gamma_0']
+            pg1 = converted_parameters['eos_polytrope_gamma_1']
+            pg2 = converted_parameters['eos_polytrope_gamma_2']
+            scaled_pressure_ratio = converted_parameters['eos_polytrope_scaled_pressure_ratio']
+            scaled_pressure_2 = converted_parameters['eos_polytrope_scaled_pressure_2']
+            m1s = converted_parameters['mass_1_source']
+            m2s = converted_parameters['mass_2_source']
+            def _call(pg_0, pg_1, pg_2, scaled_pressure_ratio, scaled_pressure_2, m1_s, m2_s):
+                call_parameters = dict(converted_parameters)
+                call_parameters['eos_polytrope_gamma_0']                   = pg_0
+                call_parameters['eos_polytrope_gamma_1']                   = pg_1
+                call_parameters['eos_polytrope_gamma_2']                   = pg_2
+                call_parameters['eos_polytrope_scaled_pressure_ratio']     = scaled_pressure_ratio
+                call_parameters['eos_polytrope_scaled_pressure_2']         = scaled_pressure_2
+                call_parameters['mass_1_source']                           = m1_s
+                call_parameters['mass_2_source']                           = m2_s
+                try:
+                    lambda_1, lambda_2, eos_check = \
+                        polytrope_or_causal_params_to_lambda_1_lambda_2(call_parameters, added_keys, causal = 0)
+                except:
+                    return 0.0, 0.0, False
+                return lambda_1, lambda_2, eos_check
+            vfunc = np.vectorize(_call, otypes=[float, float, bool])
+            (converted_parameters['lambda_1'],
+            converted_parameters['lambda_2'],
+            converted_parameters['eos_check']) = vfunc(pg0, pg1, pg2, scaled_pressure_ratio, scaled_pressure_2, m1s, m2s)
+            samples_rejected = int(np.sum(~np.asarray(converted_parameters['eos_check'], dtype = bool)))
+            if samples_rejected:
+                logger.info("EOS conversion: %d/%d samples rejected (eos_check = False)", samples_rejected, max_len)
+            for key in float_eos_params.keys():
+                converted_parameters[key] = float_eos_params[key]
+    elif 'eos_polytrope_gamma_0' in converted_parameters.keys() and 'eos_polytrope_scaled_pressure_ratio' in converted_parameters.keys() and 'ns_central_log10_pressure_1' in converted_parameters.keys():
+        float_eos_params = {}
+        max_len = 1
+        converted_parameters = generate_source_frame_parameters(converted_parameters)
+        eos_keys = ['eos_polytrope_gamma_0',
+                    'eos_polytrope_gamma_1',
+                    'eos_polytrope_gamma_2',
+                    'eos_polytrope_scaled_pressure_2',
+                    'eos_polytrope_scaled_pressure_ratio',
+                    'ns_central_log10_pressure_1',
+                    'ns_central_log10_pressure_2']
+        for key in eos_keys:
+            val = converted_parameters[key]
+            if np.ndim(val) == 0 or (hasattr(val, '__len__') and len(val) == 1):
+                converted_parameters[key] = float(np.squeeze(val))
+                float_eos_params[key] = converted_parameters[key]
+            elif hasattr(val, '__len__') and len(val) > max_len:
+                max_len = len(val)
+        if len(float_eos_params) == len(eos_keys):  # all scalars
             try:
                 converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['mass_1'], converted_parameters['mass_2'], added_keys, converted_parameters['eos_check'] = \
-                    two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(converted_parameters, added_keys, causal = 0)
+                    polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
             except RuntimeError as e:
                 logger.debug("EOS evaluation failed for a sample (%s)", e)
                 converted_parameters['lambda_1'] = 0.0
@@ -1026,26 +658,32 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                 converted_parameters['mass_1'] = 1.4
                 converted_parameters['mass_2'] = 1.4
                 converted_parameters['eos_check'] = False
-        elif len(float_eos_params) < len(eos_keys):  # case where some or none are floats (pinned)
+        elif len(float_eos_params) < len(eos_keys):
             for key in float_eos_params.keys():
                 converted_parameters[key] = np.ones(max_len) * converted_parameters[key]
-            pg0    = converted_parameters['eos_2p_polytrope_gamma_0']
-            pg1    = converted_parameters['eos_2p_polytrope_gamma_1']
-            logpc1 = converted_parameters['logpc1']
-            logpc2 = converted_parameters['logpc2']
+            pg0 = converted_parameters['eos_polytrope_gamma_0']
+            pg1 = converted_parameters['eos_polytrope_gamma_1']
+            pg2 = converted_parameters['eos_polytrope_gamma_2']
+            scaled_pressure_ratio = converted_parameters['eos_polytrope_scaled_pressure_ratio']
+            scaled_pressure_2 = converted_parameters['eos_polytrope_scaled_pressure_2']
+            ns_logp1 = converted_parameters['ns_central_log10_pressure_1']
+            ns_logp2 = converted_parameters['ns_central_log10_pressure_2']
             lumin_dist = converted_parameters['luminosity_distance']
             if type(lumin_dist) == float:
                 lumin_dist = np.ones(max_len) * lumin_dist
-            def _call(pg_0, pg_1, log_pc1, log_pc2, lum_dist):
+            def _call(pg_0, pg_1, pg_2, scaled_pressure_2, scaled_pressure_ratio, ns_logp_1, ns_logp_2, lum_dist):
                 call_parameters = dict(converted_parameters)
-                call_parameters['eos_2p_polytrope_gamma_0']            = pg_0
-                call_parameters['eos_2p_polytrope_gamma_1']            = pg_1
-                call_parameters['logpc1']                              = log_pc1
-                call_parameters['logpc2']                              = log_pc2
-                call_parameters['luminosity_distance']                 = lum_dist
+                call_parameters['eos_polytrope_gamma_0']                = pg_0
+                call_parameters['eos_polytrope_gamma_1']                = pg_1
+                call_parameters['eos_polytrope_gamma_2']                = pg_2
+                call_parameters['eos_polytrope_scaled_pressure_2']      = scaled_pressure_2
+                call_parameters['eos_polytrope_scaled_pressure_ratio']  = scaled_pressure_ratio
+                call_parameters['ns_central_log10_pressure_1']          = ns_logp_1
+                call_parameters['ns_central_log10_pressure_2']          = ns_logp_2
+                call_parameters['luminosity_distance']                  = lum_dist
                 try:
                     lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, _added_keys, eos_check = \
-                        two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(call_parameters, added_keys, causal = 0)
+                        polytrope_or_causal_params_to_lambda_1_lambda_2(call_parameters, added_keys, causal = 0)
                 except:
                     return 0.0, 0.0, 1.4, 1.4, 1.4, 1.4, False
                 return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, eos_check
@@ -1056,19 +694,23 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
             converted_parameters['mass_2_source'],
             converted_parameters['mass_1'],
             converted_parameters['mass_2'],
-            converted_parameters['eos_check']) = vfunc(pg0, pg1, logpc1, logpc2, lumin_dist)
+            converted_parameters['eos_check']) = vfunc(pg0, pg1, pg2, scaled_pressure_2, scaled_pressure_ratio, ns_logp1, ns_logp2, lumin_dist)
             samples_rejected = int(np.sum(~np.asarray(converted_parameters['eos_check'], dtype = bool)))
             if samples_rejected:
                 logger.info("EOS conversion: %d/%d samples rejected (eos_check = False)", samples_rejected, max_len)
             for key in float_eos_params.keys():
                 converted_parameters[key] = float_eos_params[key]
-    elif 'eos_2p_polytrope_gamma_0' in converted_parameters.keys() and 'pressure_scale' in converted_parameters.keys():
-        #converted_parameters = generate_source_frame_parameters(converted_parameters)
+    elif 'eos_polytrope_gamma_0' in converted_parameters.keys() and 'eos_polytrope_log10_pressure_1' in converted_parameters.keys() and 'ns_central_log10_pressure_1' in converted_parameters.keys():
         float_eos_params = {}
         max_len = 1
-        eos_keys = ['eos_2p_polytrope_gamma_0',
-                    'eos_2p_polytrope_gamma_1',
-                    'pressure_scale', 'pressure_ratio']
+        converted_parameters = generate_source_frame_parameters(converted_parameters)
+        eos_keys = ['eos_polytrope_gamma_0',
+                    'eos_polytrope_gamma_1',
+                    'eos_polytrope_gamma_2',
+                    'eos_polytrope_log10_pressure_1',
+                    'eos_polytrope_log10_pressure_2',
+                    'ns_central_log10_pressure_1',
+                    'ns_central_log10_pressure_2']
         for key in eos_keys:
             val = converted_parameters[key]
             if np.ndim(val) == 0 or (hasattr(val, '__len__') and len(val) == 1):
@@ -1076,10 +718,10 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                 float_eos_params[key] = converted_parameters[key]
             elif hasattr(val, '__len__') and len(val) > max_len:
                 max_len = len(val)
-        if len(float_eos_params) == len(eos_keys):  # case where all eos params are floats (pinned)
+        if len(float_eos_params) == len(eos_keys):  # all scalars
             try:
-                converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['mass_1'], converted_parameters['mass_2'], converted_parameters['logpc1'], converted_parameters['logpc2'], added_keys, converted_parameters['eos_check'] = \
-                    two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(converted_parameters, added_keys, causal = 0)
+                converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['mass_1'], converted_parameters['mass_2'], added_keys, converted_parameters['eos_check'] = \
+                    polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
             except RuntimeError as e:
                 logger.debug("EOS evaluation failed for a sample (%s)", e)
                 converted_parameters['lambda_1'] = 0.0
@@ -1088,32 +730,111 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                 converted_parameters['mass_2_source'] = 1.4
                 converted_parameters['mass_1'] = 1.4
                 converted_parameters['mass_2'] = 1.4
-                converted_parameters['logpc1'] = 0.0
-                converted_parameters['logpc2'] = 0.0
                 converted_parameters['eos_check'] = False
-        elif len(float_eos_params) < len(eos_keys):  # case where some or none are floats (pinned)
+        elif len(float_eos_params) < len(eos_keys):
             for key in float_eos_params.keys():
                 converted_parameters[key] = np.ones(max_len) * converted_parameters[key]
-            pg0    = converted_parameters['eos_2p_polytrope_gamma_0']
-            pg1    = converted_parameters['eos_2p_polytrope_gamma_1']
-            pressure_scale = converted_parameters['pressure_scale']
-            pressure_ratio = converted_parameters['pressure_ratio']
+            pg0 = converted_parameters['eos_polytrope_gamma_0']
+            pg1 = converted_parameters['eos_polytrope_gamma_1']
+            pg2 = converted_parameters['eos_polytrope_gamma_2']
+            eos_logp1 = converted_parameters['eos_polytrope_log10_pressure_1']
+            eos_logp2 = converted_parameters['eos_polytrope_log10_pressure_2']
+            ns_logp1 = converted_parameters['ns_central_log10_pressure_1']
+            ns_logp2 = converted_parameters['ns_central_log10_pressure_2']
             lumin_dist = converted_parameters['luminosity_distance']
             if type(lumin_dist) == float:
                 lumin_dist = np.ones(max_len) * lumin_dist
-            def _call(pg_0, pg_1, pressure_scale, pressure_ratio, lum_dist):
+            def _call(pg_0, pg_1, pg_2, eos_logp_1, eos_logp_2, ns_logp_1, ns_logp_2, lum_dist):
                 call_parameters = dict(converted_parameters)
-                call_parameters['eos_2p_polytrope_gamma_0']            = pg_0
-                call_parameters['eos_2p_polytrope_gamma_1']            = pg_1
-                call_parameters['pressure_scale']                      = pressure_scale
-                call_parameters['pressure_ratio']                      = pressure_ratio
-                call_parameters['luminosity_distance']                 = lum_dist
+                call_parameters['eos_polytrope_gamma_0']                = pg_0
+                call_parameters['eos_polytrope_gamma_1']                = pg_1
+                call_parameters['eos_polytrope_gamma_2']                = pg_2
+                call_parameters['eos_polytrope_log10_pressure_1']       = eos_logp_1
+                call_parameters['eos_polytrope_log10_pressure_2']       = eos_logp_2
+                call_parameters['ns_central_log10_pressure_1']          = ns_logp_1
+                call_parameters['ns_central_log10_pressure_2']          = ns_logp_2
+                call_parameters['luminosity_distance']                  = lum_dist
                 try:
-                    lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, logpc1, logpc2, _added_keys, eos_check = \
-                        two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(call_parameters, added_keys, causal = 0)
+                    lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, _added_keys, eos_check = \
+                        polytrope_or_causal_params_to_lambda_1_lambda_2(call_parameters, added_keys, causal = 0)
+                except:
+                    return 0.0, 0.0, 1.4, 1.4, 1.4, 1.4, False
+                return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, eos_check
+            vfunc = np.vectorize(_call, otypes=[float, float, float, float, float, float, bool])
+            (converted_parameters['lambda_1'],
+            converted_parameters['lambda_2'],
+            converted_parameters['mass_1_source'],
+            converted_parameters['mass_2_source'],
+            converted_parameters['mass_1'],
+            converted_parameters['mass_2'],
+            converted_parameters['eos_check']) = vfunc(pg0, pg1, pg2, eos_logp1, eos_logp2, ns_logp1, ns_logp2, lumin_dist)
+            samples_rejected = int(np.sum(~np.asarray(converted_parameters['eos_check'], dtype = bool)))
+            if samples_rejected:
+                logger.info("EOS conversion: %d/%d samples rejected (eos_check = False)", samples_rejected, max_len)
+            for key in float_eos_params.keys():
+                converted_parameters[key] = float_eos_params[key]
+    elif 'eos_polytrope_gamma_0' in converted_parameters.keys() and 'ns_central_pressure_scale' in converted_parameters.keys() and 'eos_polytrope_scaled_pressure_ratio' in converted_parameters.keys():
+        float_eos_params = {}
+        max_len = 1
+        converted_parameters = generate_source_frame_parameters(converted_parameters)
+        eos_keys = ['eos_polytrope_gamma_0',
+                    'eos_polytrope_gamma_1',
+                    'eos_polytrope_gamma_2',
+                    'eos_polytrope_scaled_pressure_2',
+                    'eos_polytrope_scaled_pressure_ratio',
+                    'ns_central_pressure_scale',
+                    'ns_central_pressure_ratio']
+        for key in eos_keys:
+            val = converted_parameters[key]
+            if np.ndim(val) == 0 or (hasattr(val, '__len__') and len(val) == 1):
+                converted_parameters[key] = float(np.squeeze(val))
+                float_eos_params[key] = converted_parameters[key]
+            elif hasattr(val, '__len__') and len(val) > max_len:
+                max_len = len(val)
+        if len(float_eos_params) == len(eos_keys):
+            try:
+                converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['mass_1'], converted_parameters['mass_2'], converted_parameters['ns_central_log10_pressure_1'], converted_parameters['ns_central_log10_pressure_2'], added_keys, converted_parameters['eos_check'] = \
+                    polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
+            except RuntimeError as e:
+                logger.debug("EOS evaluation failed for a sample (%s)", e)
+                converted_parameters['lambda_1'] = 0.0
+                converted_parameters['lambda_2'] = 0.0
+                converted_parameters['mass_1_source'] = 1.4
+                converted_parameters['mass_2_source'] = 1.4
+                converted_parameters['mass_1'] = 1.4
+                converted_parameters['mass_2'] = 1.4
+                converted_parameters['ns_central_log10_pressure_1'] = 0.0
+                converted_parameters['ns_central_log10_pressure_2'] = 0.0
+                converted_parameters['eos_check'] = False
+        elif len(float_eos_params) < len(eos_keys):
+            for key in float_eos_params.keys():
+                converted_parameters[key] = np.ones(max_len) * converted_parameters[key]
+            pg0 = converted_parameters['eos_polytrope_gamma_0']
+            pg1 = converted_parameters['eos_polytrope_gamma_1']
+            pg2 = converted_parameters['eos_polytrope_gamma_2']
+            scaled_pressure_ratio = converted_parameters['eos_polytrope_scaled_pressure_ratio']
+            scaled_pressure_2 = converted_parameters['eos_polytrope_scaled_pressure_2']
+            ns_pressure_scale = converted_parameters['ns_central_pressure_scale']
+            ns_pressure_ratio = converted_parameters['ns_central_pressure_ratio']
+            lumin_dist = converted_parameters['luminosity_distance']
+            if type(lumin_dist) == float:
+                lumin_dist = np.ones(max_len) * lumin_dist
+            def _call(pg_0, pg_1, pg_2, scaled_pressure_2, scaled_pressure_ratio, ns_pressure_scale, ns_pressure_ratio, lum_dist):
+                call_parameters = dict(converted_parameters)
+                call_parameters['eos_polytrope_gamma_0']                = pg_0
+                call_parameters['eos_polytrope_gamma_1']                = pg_1
+                call_parameters['eos_polytrope_gamma_2']                = pg_2
+                call_parameters['eos_polytrope_scaled_pressure_2']      = scaled_pressure_2
+                call_parameters['eos_polytrope_scaled_pressure_ratio']  = scaled_pressure_ratio
+                call_parameters['ns_central_pressure_scale']            = ns_pressure_scale
+                call_parameters['ns_central_pressure_ratio']            = ns_pressure_ratio
+                call_parameters['luminosity_distance']                  = lum_dist
+                try:
+                    lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, ns_logp1, ns_logp2, _added_keys, eos_check = \
+                        polytrope_or_causal_params_to_lambda_1_lambda_2(call_parameters, added_keys, causal = 0)
                 except:
                     return 0.0, 0.0, 1.4, 1.4, 1.4, 1.4, 0.0, 0.0, False
-                return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, logpc1, logpc2, eos_check
+                return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, ns_logp1, ns_logp2, eos_check
             vfunc = np.vectorize(_call, otypes=[float, float, float, float, float, float, float, float, bool])
             (converted_parameters['lambda_1'],
             converted_parameters['lambda_2'],
@@ -1121,14 +842,92 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
             converted_parameters['mass_2_source'],
             converted_parameters['mass_1'],
             converted_parameters['mass_2'],
-            converted_parameters['logpc1'],
-            converted_parameters['logpc2'],
-            converted_parameters['eos_check']) = vfunc(pg0, pg1, pressure_scale, pressure_ratio, lumin_dist)
+            converted_parameters['ns_central_log10_pressure_1'],
+            converted_parameters['ns_central_log10_pressure_2'],
+            converted_parameters['eos_check']) = vfunc(pg0, pg1, pg2, scaled_pressure_2, scaled_pressure_ratio, ns_pressure_scale, ns_pressure_ratio, lumin_dist)
             samples_rejected = int(np.sum(~np.asarray(converted_parameters['eos_check'], dtype = bool)))
             if samples_rejected:
                 logger.info("EOS conversion: %d/%d samples rejected (eos_check = False)", samples_rejected, max_len)
             for key in float_eos_params.keys():
                 converted_parameters[key] = float_eos_params[key]
+    elif 'eos_polytrope_gamma_0' in converted_parameters.keys() and 'ns_central_pressure_scale' in converted_parameters.keys() and 'eos_polytrope_log10_pressure_1' in converted_parameters.keys():
+        float_eos_params = {}
+        max_len = 1
+        converted_parameters = generate_source_frame_parameters(converted_parameters)
+        eos_keys = ['eos_polytrope_gamma_0',
+                    'eos_polytrope_gamma_1',
+                    'eos_polytrope_gamma_2',
+                    'eos_polytrope_log10_pressure_1',
+                    'eos_polytrope_log10_pressure_2',
+                    'ns_central_pressure_scale',
+                    'ns_central_pressure_ratio']
+        for key in eos_keys:
+            val = converted_parameters[key]
+            if np.ndim(val) == 0 or (hasattr(val, '__len__') and len(val) == 1):
+                converted_parameters[key] = float(np.squeeze(val))
+                float_eos_params[key] = converted_parameters[key]
+            elif hasattr(val, '__len__') and len(val) > max_len:
+                max_len = len(val)
+        if len(float_eos_params) == len(eos_keys):
+            try:
+                converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['mass_1'], converted_parameters['mass_2'], converted_parameters['ns_central_log10_pressure_1'], converted_parameters['ns_central_log10_pressure_2'], added_keys, converted_parameters['eos_check'] = \
+                    polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_keys, causal = 0)
+            except RuntimeError as e:
+                logger.debug("EOS evaluation failed for a sample (%s)", e)
+                converted_parameters['lambda_1'] = 0.0
+                converted_parameters['lambda_2'] = 0.0
+                converted_parameters['mass_1_source'] = 1.4
+                converted_parameters['mass_2_source'] = 1.4
+                converted_parameters['mass_1'] = 1.4
+                converted_parameters['mass_2'] = 1.4
+                converted_parameters['ns_central_log10_pressure_1'] = 0.0
+                converted_parameters['ns_central_log10_pressure_2'] = 0.0
+                converted_parameters['eos_check'] = False
+        elif len(float_eos_params) < len(eos_keys):
+            for key in float_eos_params.keys():
+                converted_parameters[key] = np.ones(max_len) * converted_parameters[key]
+            pg0 = converted_parameters['eos_polytrope_gamma_0']
+            pg1 = converted_parameters['eos_polytrope_gamma_1']
+            pg2 = converted_parameters['eos_polytrope_gamma_2']
+            eos_logp1 = converted_parameters['eos_polytrope_log10_pressure_1']
+            eos_logp2 = converted_parameters['eos_polytrope_log10_pressure_2']
+            ns_pressure_scale = converted_parameters['ns_central_pressure_scale']
+            ns_pressure_ratio = converted_parameters['ns_central_pressure_ratio']
+            lumin_dist = converted_parameters['luminosity_distance']
+            if type(lumin_dist) == float:
+                lumin_dist = np.ones(max_len) * lumin_dist
+            def _call(pg_0, pg_1, pg_2, eos_logp_1, eos_logp_2, ns_pressure_scale, ns_pressure_ratio, lum_dist):
+                call_parameters = dict(converted_parameters)
+                call_parameters['eos_polytrope_gamma_0']                = pg_0
+                call_parameters['eos_polytrope_gamma_1']                = pg_1
+                call_parameters['eos_polytrope_gamma_2']                = pg_2
+                call_parameters['eos_polytrope_log10_pressure_1']       = eos_logp_1
+                call_parameters['eos_polytrope_log10_pressure_2']       = eos_logp_2
+                call_parameters['ns_central_pressure_scale']            = ns_pressure_scale
+                call_parameters['ns_central_pressure_ratio']            = ns_pressure_ratio
+                call_parameters['luminosity_distance']                  = lum_dist
+                try:
+                    lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, ns_logp1, ns_logp2, _added_keys, eos_check = \
+                        polytrope_or_causal_params_to_lambda_1_lambda_2(call_parameters, added_keys, causal = 0)
+                except:
+                    return 0.0, 0.0, 1.4, 1.4, 1.4, 1.4, 0.0, 0.0, False
+                return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, ns_logp1, ns_logp2, eos_check
+            vfunc = np.vectorize(_call, otypes=[float, float, float, float, float, float, float, float, bool])
+            (converted_parameters['lambda_1'],
+            converted_parameters['lambda_2'],
+            converted_parameters['mass_1_source'],
+            converted_parameters['mass_2_source'],
+            converted_parameters['mass_1'],
+            converted_parameters['mass_2'],
+            converted_parameters['ns_central_log10_pressure_1'],
+            converted_parameters['ns_central_log10_pressure_2'],
+            converted_parameters['eos_check']) = vfunc(pg0, pg1, pg2, eos_logp1, eos_logp_2, ns_pressure_scale, ns_pressure_ratio, lumin_dist)
+            samples_rejected = int(np.sum(~np.asarray(converted_parameters['eos_check'], dtype = bool)))
+            if samples_rejected:
+                logger.info("EOS conversion: %d/%d samples rejected (eos_check = False)", samples_rejected, max_len)
+            for key in float_eos_params.keys():
+                converted_parameters[key] = float_eos_params[key]
+
     elif 'eos_v1' in converted_parameters.keys():
         converted_parameters = generate_source_frame_parameters(converted_parameters)
         float_eos_params = {}
@@ -1205,7 +1004,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
     return converted_parameters, added_keys
 
 
-def log_pressure_reparameterization_conversion(scaled_pressure_ratio, scaled_pressure_2):
+def log_pressure_reparameterization_conversion(scaled_pressure_ratio, scaled_pressure_2, minimum_pressure):
     '''
     Converts the reparameterization joining pressures from
         (scaled_pressure_ratio,scaled_pressure_2) to (log10_pressure_1,log10_pressure_2).
@@ -1228,7 +1027,6 @@ def log_pressure_reparameterization_conversion(scaled_pressure_ratio, scaled_pre
         joining pressures in the original parameterization
 
     '''
-    minimum_pressure = 33.0
     log10_pressure_1 = (scaled_pressure_ratio * scaled_pressure_2) + minimum_pressure
     log10_pressure_2 = minimum_pressure + scaled_pressure_2
 
@@ -1349,7 +1147,7 @@ def polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_
     if 'eos_polytrope_log10_pressure_1' in converted_parameters.keys():
         eos_logp1, eos_logp2 = converted_parameters['eos_polytrope_log10_pressure_1'], converted_parameters['eos_polytrope_log10_pressure_2']
     elif 'eos_polytrope_scaled_pressure_ratio' in converted_parameters.keys():
-        eos_logp1, eos_logp2 = log_pressure_reparameterization_conversion(converted_parameters['eos_polytrope_scaled_pressure_ratio'], converted_parameters['eos_polytrope_scaled_pressure_2'])
+        eos_logp1, eos_logp2 = log_pressure_reparameterization_conversion(converted_parameters['eos_polytrope_scaled_pressure_ratio'], converted_parameters['eos_polytrope_scaled_pressure_2'], 33.0)
     eos_check = True
     if eos_logp1 >= eos_logp2:
         if 'mass_1_source' not in converted_parameters.keys():
@@ -1418,7 +1216,7 @@ def polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_
                     passing_parameters = {'ns_central_pressure_scale': converted_parameters['ns_central_pressure_scale'], 'ns_central_pressure_ratio': converted_parameters['ns_central_pressure_ratio'], 'luminosity_distance': converted_parameters['luminosity_distance']}
                 elif 'ns_central_pressure_scale' not in converted_parameters.keys():
                     passing_parameters = {'ns_central_log10_pressure_1': converted_parameters['ns_central_log10_pressure_1'], 'ns_central_log10_pressure_2': converted_parameters['ns_central_log10_pressure_2'], 'luminosity_distance': converted_parameters['luminosity_distance']}
-                passing_parameters, added_keys, lambda_1, lambda_2, eos_check = generate_component_masses_from_central_pressures(passing_parameters, added_keys, eos, family)
+                passing_parameters, added_keys, lambda_1, lambda_2, eos_check = generate_component_masses_and_lambdas_from_central_pressures(passing_parameters, added_keys, eos, family)
                 if eos_check == True:
                     mass_1_source, mass_2_source, mass_1, mass_2 = passing_parameters['mass_1_source'], passing_parameters['mass_2_source'], passing_parameters['mass_1'], passing_parameters['mass_2']
                 else:
@@ -1438,107 +1236,6 @@ def polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_
         else:
             return lambda_1, lambda_2, eos_check
 
-
-def two_piece_polytrope_or_causal_params_to_lambda_1_lambda_2_mass_1_s_mass_2_s_mass_1_mass_2(converted_parameters, added_keys, causal):
-    """  
-    Converts parameters from sampled dynamic piecewise polytrope parameters
-        to component tidal deformablity parameters and converts from 
-        component log cgs central pressures to component source masses, 
-        in solar masses, along the way. 
-    Checks number of points in the equation of state for viability.
-    Note that subtracting 1 from the log10 pressure in cgs converts it to
-        log10 pressure in si units.
-
-    Parameters
-    ----------
-    param1, param2: float
-        either the sampled adiabatic indices in piecewise polytrope model
-        or the sampled causal model params v1, v2
-    log10_pressure1_cgs: float
-        dividing pressures in piecewise polytrope model or causal model
-    causal: bool
-        whether or not to use causal polytrope model
-        1 - causal; 0 - not causal
-    luminosity_distance: float
-        The luminosity distance in megaparsecs FIXME 
-    logpc1, logpc2: float
-        component pressures in log cgs
-    pressure_scale: float
-        The value of logpc1 with some minimum value subtracted out
-    pressure_ratio: float
-        The ratio of logpc2, after it has had some minimum value subtracted
-        out, to logpc1, after it has had the same minimum value subtracted out
-
-    Returns
-    -------
-    lambda_1: float
-        tidal deformability parameter associated with mass 1
-    lambda_2: float
-        tidal deformability parameter associated with mass 2
-    mass_1_source: float
-        source frame mass for object of greater mass
-    mass_2_source: float
-        source frame mass for object of lesser mass
-    mass_1: float
-        detector frame mass for object of greater mass
-    mass_2: float
-        detector frame mass for object of lesser mass
-    logpc1: float
-        log component central pressure for object of greater mass
-    eos_check: bool
-        whether eos is valid or not
-
-    """
-    log10_pressure1_cgs = 35.5
-    eos_check = True
-    if causal == 0:
-        eos = lalsim_SimNeutronStarEOS2PieceStaticPolytrope(
-                converted_parameters['eos_2p_polytrope_gamma_0'], converted_parameters['eos_2p_polytrope_gamma_1'])
-    else:
-        eos = lalsim_SimNeutronStarEOS2PieceCausalAnalytic(
-                converted_parameters['eos_2p_polytrope_gamma_0'], log10_pressure1_cgs - 1., converted_parameters['eos_2p_polytrope_gamma_1'])
-    if lalsim_SimNeutronStarEOS2PDViableFamilyCheck(
-            converted_parameters['eos_2p_polytrope_gamma_0'], log10_pressure1_cgs - 1., converted_parameters['eos_2p_polytrope_gamma_1'], causal) != 0:
-        if 'logpc1' not in converted_parameters.keys():
-            lambda_1 = 0.0
-            lambda_2 = 0.0
-            mass_1_source = 1.4
-            mass_2_source = 1.4
-            mass_1 = 1.4
-            mass_2 = 1.4
-            logpc1 = 0.0
-            logpc2 = 0.0
-            eos_check = False
-            return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, logpc1, logpc2, added_keys, eos_check
-        else:
-            lambda_1 = 0.0
-            lambda_2 = 0.0
-            mass_1_source = 1.4
-            mass_2_source = 1.4
-            mass_1 = 1.4
-            mass_2 = 1.4
-            eos_check = False
-            return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, added_keys, eos_check
-    else:
-        min_fam = 1
-        family = lalsim_CreateSimNeutronStarFamily(eos, min_fam)
-        if 'logpc1' not in converted_parameters.keys():
-            passing_parameters = {'pressure_scale': converted_parameters['pressure_scale'], 'pressure_ratio': converted_parameters['pressure_ratio'], 'luminosity_distance': converted_parameters['luminosity_distance']}
-        elif 'pressure_scale' not in converted_parameters.keys():
-            passing_parameters = {'logpc1': converted_parameters['logpc1'], 'logpc2': converted_parameters['logpc2'], 'luminosity_distance': converted_parameters['luminosity_distance']}
-        passing_parameters, added_keys, lambda_1, lambda_2, eos_check = generate_component_masses_from_central_pressures(passing_parameters, added_keys, eos, family)
-        if eos_check == True:
-            mass_1_source, mass_2_source, mass_1, mass_2 = passing_parameters['mass_1_source'], passing_parameters['mass_2_source'], passing_parameters['mass_1'], passing_parameters['mass_2']
-        else:
-            mass_1_source = 1.4
-            mass_2_source = 1.4
-            mass_1 = 1.4
-            mass_2 = 1.4
-    if 'logpc1' not in converted_parameters.keys():
-        logpc1, logpc2 = passing_parameters['logpc1'], passing_parameters['logpc2']
-        return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, logpc1, logpc2, added_keys, eos_check
-    elif 'pressure_scale' not in converted_parameters.keys(): 
-        return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, added_keys, eos_check
 
 
 def neutron_star_family_physical_check(eos, family, mass_1_source, mass_2_source):
@@ -1629,9 +1326,11 @@ def neutron_star_family_physical_check_in_central_pressure(eos, family, pc1, pc2
     else:
         lambda_1 = 0.0
         lambda_2 = 0.0
+        mass_1_source = 1.4
+        mass_2_source = 1.4
         eos_check = False
     
-    return lambda_1, lambda_2, eos_check
+    return lambda_1, lambda_2, mass_1_source, mass_2_source, eos_check
 
 def lambda_from_mass_and_family(mass_i, family):
     """
