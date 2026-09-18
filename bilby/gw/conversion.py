@@ -293,16 +293,15 @@ def convert_to_lal_binary_black_hole_parameters(parameters):
 
 def generate_component_masses_and_lambdas_from_central_pressures(converted_parameters, added_keys, eos = 'placeholder', family = 'placeholder'): 
     """
-    Takes in converted_parameters array, added_keys list of any keys previously added to 
-    converted_parameters, and equation of state. Calculates source frame and detector frame 
-    component masses based on component log central pressures if component log central pressures are 
-    present. If component log central pressures are not present, but ns_pressure_scale and ns_pressure_ratio 
-    are present, then it uses these to calculate component log central pressures and then calculates 
-    the source frame and detector frame masses from those. Requires luminosity_distance to be in 
-    converted_parameters for the calculation of detector frame component masses to work. Does 
-    nothing if all inputs are provided, but component log central pressures are not in 
-    converted_parameters. If no eos is provided, then the function will be exited around the 
-    beginning after printing a message about the issue. 
+    Takes in converted_parameters array, added_keys list of any keys previously added to converted_parameters, equation 
+    of state, and equation of state family. Calculates source frame and detector frame component masses based on 
+    component log central pressures if component log central pressures are present. If component log central pressures 
+    are not present, but ns_pressure_scale and ns_pressure_ratio are present, then it uses these to calculate component 
+    log central pressures and then calculates the source frame and detector framemasses from those. Requires 
+    luminosity_distance to be in converted_parameters for the calculation of detector frame component masses to work. 
+    Does nothing if all inputs are provided, but neither component log central pressures nor ns_central_pressure_scale 
+    and ns_central_pressure_ratio are not in converted_parameters. If no eos is provided or no family is provided, then 
+    the function will be exited around the beginning after printing a message about the issue. 
 
     Input log central pressures are expected in cgs. Output masses are in solar masses. 
     Inputs for pressure_scale and pressure_ratio seem to be the same for cgs and SI. 
@@ -317,6 +316,8 @@ def generate_component_masses_and_lambdas_from_central_pressures(converted_param
         keys which were added to converted_parameters during the operation of previous functions
     eos: lalsim swig-wrapped eos object
         the neutron star equation of state
+    family: lalsim family object
+        EOS family of type lalsimulation.SimNeutronStarFamily
     
     Returns
     -------
@@ -1002,25 +1003,23 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
 
 def log_pressure_reparameterization_conversion(scaled_pressure_ratio, scaled_pressure_2, minimum_pressure=33.0):
     '''
-    Converts the reparameterization joining pressures from
-        (scaled_pressure_ratio,scaled_pressure_2) to (log10_pressure_1,log10_pressure_2).
-    This reparameterization with a triangular prior (with mode = max)  on scaled_pressure_2
-        and a uniform prior on scaled_pressure_ratio
-        mimics identical uniform priors on log10_pressure_1 and log10_pressure_2
-        where samples with log10_pressure_2 > log10_pressure_1 are rejected.
-    This reparameterization allows for a faster initialization.
-    A minimum log10_pressure of 33 (in cgs units) is chosen to be slightly higher than the low-density crust EOS
-        that is stitched to the dynamic polytrope EOS model in LALSimulation.
+    Converts the reparameterization joining pressures from (scaled_pressure_ratio,scaled_pressure_2) to 
+    (log10_pressure_1,log10_pressure_2). This reparameterization with a triangular prior (with mode = max) on 
+    scaled_pressure_2 and a uniform prior on scaled_pressure_ratio mimics identical uniform priors on 
+    log10_pressure_1 and log10_pressure_2 where samples with log10_pressure_2 > log10_pressure_1 are rejected. 
+    This reparameterization allows for a faster initialization. A default minimum log10_pressure of 33 (in cgs 
+    units) is chosen to be slightly higher than the low-density crust EOS that is stitched to the dynamic polytrope 
+    EOS model in LALSimulation.
 
     Parameters
     ----------
     scaled_pressure_ratio, scaled_pressure_2: float
-        reparameterizations of the dividing pressures
+        reparameterizations of the dividing pressures or of the component central pressures
 
     Returns
     -------
     log10_pressure_1, log10_pressure_2: float
-        joining pressures in the original parameterization
+        log joining pressures or log component central pressures in the original parameterization
 
     '''
     log10_pressure_1 = (scaled_pressure_ratio * scaled_pressure_2) + minimum_pressure
@@ -1119,18 +1118,16 @@ def polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_
 
     Parameters
     ----------
-    param1, param2, param3: float
-        either the sampled adiabatic indices in piecewise polytrope model
-        or the sampled causal model params v1, v2, v3
-    log10_pressure1_cgs, log10_pressure2_cgs: float
-        dividing pressures in piecewise polytrope model or causal model
-    mass_1_source, mass_2_source: float
-        source frame component mass parameters in Msuns
+    converted_parameters: dict
+        carries the main input information into the fuction
+    added_keys: list
+        keeps track of keys for new entries added into converted_parameters
     causal: bool
         whether or not to use causal polytrope model
         1 - causal; 0 - not causal
 
-    Returns
+    Returns # FIXME: not sure how to address this function sometimes, but not always, returning
+    other suff, like masses, and not sure that it should do that. 
     -------
     lambda_1: float
         tidal deformability parameter associated with mass 1
@@ -1244,6 +1241,8 @@ def neutron_star_family_physical_check(eos, family, mass_1_source, mass_2_source
     ----------
     eos: lalsim swig-wrapped eos object
         the neutron star equation of state
+    family: lalsim family object
+        EOS family of type lalsimulation.SimNeutronStarFamily
     mass_1_source, mass_2_source: float
         source frame component masses 1 and 2 in solar masses
 
@@ -1274,7 +1273,7 @@ def neutron_star_family_physical_check(eos, family, mass_1_source, mass_2_source
 
 def neutron_star_family_physical_check_in_central_pressure(eos, family, pc1, pc2):
     """
-    Takes in a lalsim eos object. Performs causal and max/min mass eos checks.
+    Takes in a lalsim eos object. Performs causal and max/min pressure eos checks.
     Calculates component lambdas if eos object passes causality.
     Accepts pressures instead of masses. 
     Returns lambda = 0 if not.
@@ -1283,6 +1282,8 @@ def neutron_star_family_physical_check_in_central_pressure(eos, family, pc1, pc2
     ----------
     eos: lalsim swig-wrapped eos object
         the neutron star equation of state
+    family: lalsim family object
+        EOS family of type lalsimulation.SimNeutronStarFamily
     pc1, pc2: float
         source frame component central pressures 1 and 2 in pascals
 
@@ -1292,6 +1293,9 @@ def neutron_star_family_physical_check_in_central_pressure(eos, family, pc1, pc2
         component tidal deformability parameters
     eos_check: bool
         whether or not the equation of state is physically allowed
+    mass_1_source, mass_2_source: float
+        component source masses
+    
 
     """
     eos_check = True
@@ -1341,7 +1345,7 @@ def lambda_from_mass_and_family(mass_i, family):
 
     Returns
     -------
-    lambda_1: float
+    lambda_i: float
         component tidal deformability parameter
 
     """
@@ -1366,12 +1370,14 @@ def lambda_from_pressure_and_family(mass_i, pressure_i, family):
     ----------
     family: lalsim family object
         EOS family of type lalsimulation.SimNeutronStarFamily.
-    mass_i: Component mass of neutron star in solar masses.
-    pressure_i: Central pressure of neutron star in SI units.
+    mass_i: float 
+        Component mass of neutron star in solar masses.
+    pressure_i: float 
+        Central pressure of neutron star in SI units.
 
     Returns
     -------
-    lambda_1: float
+    lambda_i: float
         component tidal deformability parameter
 
     """
