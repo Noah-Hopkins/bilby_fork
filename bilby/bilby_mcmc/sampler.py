@@ -814,7 +814,6 @@ class BilbyPTMCMCSampler(object):
             self.swap_counter["ensemble"] += 1
             self.swap_counter["L2-ensemble"] = 0
             self.ensemble_step()
-            self.swap_ensemble_chains()
 
         if self.ntemps > 1 and self.swap_counter["L2-temperature"] >= self.L2steps:
             self.swap_counter["temperature"] += 1
@@ -848,7 +847,6 @@ class BilbyPTMCMCSampler(object):
             Eindexs = [0]
         for Eindex in Eindexs:
             for Tindex in range(self.ntemps - 1):
-                #print(f"Tindex here is {Tindex}")
                 sampleri = self.sampler_dictionary[Tindex][Eindex]
                 vi, logli = self._get_sample_to_swap(sampleri)
                 betai = sampleri.beta
@@ -860,7 +858,6 @@ class BilbyPTMCMCSampler(object):
                 dbeta = betaj - betai
                 with np.errstate(over="ignore"):
                     alpha_swap = np.exp(dbeta * (logli - loglj))
-                    #print(f"alpha_swap for temperature this time is {alpha_swap}")
 
                 if random.rng.uniform(0, 1) <= alpha_swap:
                     sampleri.chain[-1] = vj
@@ -869,33 +866,6 @@ class BilbyPTMCMCSampler(object):
                     self.sampler_dictionary[Tindex + 1][Eindex] = samplerj
                     sampleri.pt_accepted += 1
                 else:
-                    sampleri.pt_rejected += 1
-
-    def swap_ensemble_chains(self):
-        for Eindex in range(self.nensemble):
-            if (Eindex != 0):
-                #print(f"Eindex is {Eindex}")
-                sampleri = self.sampler_dictionary[0][Eindex]
-                vi, logli = self._get_sample_to_swap(sampleri)
-
-                samplerj = self.sampler_dictionary[0][Eindex - 1]
-                vj, loglj = self._get_sample_to_swap(samplerj)
-
-                with np.errstate(over="ignore"):
-                    alpha_swap = np.exp(loglj - logli)
-                    #print(f"alpha_swap for ensemble this time is {alpha_swap}")
-                    #print(f"This chain's sample was {vi}. The previous chain's sample was {vj}. ")
-
-                if random.rng.uniform(0, 1) <= alpha_swap:
-                    sampleri.chain[-1] = vj
-                    samplerj.chain[-1] = vi
-                    self.sampler_dictionary[0][Eindex] = sampleri
-                    self.sampler_dictionary[0][Eindex - 1] = samplerj
-                    #if (Eindex == self.nensemble-1): 
-                        #print("chad")
-                        #print(f"Last chain's sample is now {vj}. Second last chain's sample is now {vi}. ")
-                    sampleri.pt_accepted += 1
-                else: 
                     sampleri.pt_rejected += 1
 
     def ensemble_step(self):

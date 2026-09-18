@@ -342,7 +342,7 @@ def generate_component_masses_and_lambdas_from_central_pressures(converted_param
         return converted_parameters, added_keys
 
     elif 'ns_central_log10_pressure_1' in converted_parameters.keys() and 'ns_central_log10_pressure_2' in converted_parameters.keys():
-        converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['eos_check'] = neutron_star_family_physical_check_in_central_pressure(eos, family, 10**(converted_parameters['ns_central_log10_pressure_1']-1.), 10**(converted_parameters['ns_central_log10_pressure_2']-1.))
+        converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['eos_check'] = neutron_star_family_physical_check_and_source_masses_in_central_pressure(eos, family, 10**(converted_parameters['ns_central_log10_pressure_1']-1.), 10**(converted_parameters['ns_central_log10_pressure_2']-1.))
 
         if converted_parameters['eos_check'] == True:
             converted_parameters['redshift'] =\
@@ -366,7 +366,7 @@ def generate_component_masses_and_lambdas_from_central_pressures(converted_param
     elif 'ns_central_pressure_scale' in converted_parameters.keys() and 'ns_central_pressure_ratio' in converted_parameters.keys():
         converted_parameters['ns_central_log10_pressure_2'], converted_parameters['ns_central_log10_pressure_1'] = log_pressure_reparameterization_conversion(converted_parameters['ns_central_pressure_ratio'], converted_parameters['ns_central_pressure_scale'], 33.0)
         
-        converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['eos_check'] = neutron_star_family_physical_check_in_central_pressure(eos, family, 10**(converted_parameters['ns_central_log10_pressure_1']-1.), 10**(converted_parameters['ns_central_log10_pressure_2']-1.))
+        converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['eos_check'] = neutron_star_family_physical_check_and_source_masses_in_central_pressure(eos, family, 10**(converted_parameters['ns_central_log10_pressure_1']-1.), 10**(converted_parameters['ns_central_log10_pressure_2']-1.))
         
         
         if converted_parameters['eos_check'] == True:
@@ -1271,7 +1271,7 @@ def neutron_star_family_physical_check(eos, family, mass_1_source, mass_2_source
     return lambda_1, lambda_2, eos_check
 
 
-def neutron_star_family_physical_check_in_central_pressure(eos, family, pc1, pc2):
+def neutron_star_family_physical_check_and_source_masses_in_central_pressure(eos, family, pc1, pc2):
     """
     Takes in a lalsim eos object. Performs causal and max/min pressure eos checks.
     Calculates component lambdas if eos object passes causality.
