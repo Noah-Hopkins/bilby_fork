@@ -1,4 +1,5 @@
 astropy>=5
+lalsuite
 gwpy
 pyfftw
 scikit-learn
