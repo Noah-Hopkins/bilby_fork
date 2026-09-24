@@ -386,7 +386,7 @@ def generate_component_masses_and_lambdas_from_central_pressures(converted_param
         else:
             added_keys = added_keys + [key for key in converted_parameters.keys()
                         if key not in original_keys]
-            return converted_parameters, added_keys, lambda_1, lambda_2, eos_check
+            return converted_parameters, added_keys
 
     return converted_parameters, added_keys
 
@@ -1209,7 +1209,7 @@ def polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_
                     passing_parameters = {'ns_central_pressure_scale': converted_parameters['ns_central_pressure_scale'], 'ns_central_pressure_ratio': converted_parameters['ns_central_pressure_ratio'], 'luminosity_distance': converted_parameters['luminosity_distance']}
                 elif 'ns_central_pressure_scale' not in converted_parameters.keys():
                     passing_parameters = {'ns_central_log10_pressure_1': converted_parameters['ns_central_log10_pressure_1'], 'ns_central_log10_pressure_2': converted_parameters['ns_central_log10_pressure_2'], 'luminosity_distance': converted_parameters['luminosity_distance']}
-                passing_parameters, added_keys, lambda_1, lambda_2, eos_check = generate_component_masses_and_lambdas_from_central_pressures(passing_parameters, added_keys, eos, family)
+                passing_parameters, added_keys = generate_component_masses_and_lambdas_from_central_pressures(passing_parameters, added_keys, eos, family)
                 if passing_parameters['eos_check'] == True:
                     mass_1_source, mass_2_source, mass_1, mass_2, lambda_1, lambda_2, eos_check = passing_parameters['mass_1_source'], passing_parameters['mass_2_source'], passing_parameters['mass_1'], passing_parameters['mass_2'], passing_parameters['lambda_1'], passing_parameters['lambda_2'], passing_parameters['eos_check']
                 else:
