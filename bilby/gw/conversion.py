@@ -914,7 +914,7 @@ def polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_
             eos = lalsim_SimNeutronStarEOS3PieceDynamicPolytrope(converted_parameters['eos_polytrope_gamma_0'], eos_logp1 - 1., converted_parameters['eos_polytrope_gamma_1'], eos_logp2 - 1., converted_parameters['eos_polytrope_gamma_2'])
         else:
             eos = lalsim_SimNeutronStarEOS3PieceCausalAnalytic(converted_parameters['eos_polytrope_gamma_0'], eos_logp1 - 1., converted_parameters['eos_polytrope_gamma_1'], eos_logp2 - 1., converted_parameters['eos_polytrope_gamma_2'])
-        if lalsim_SimNeutronStarEOS3PDViableFamilyCheck(eos) != 0:
+        if lalsim_SimNeutronStarEOS3PDViableFamilyCheck(converted_parameters['eos_polytrope_gamma_0'], eos_logp1 - 1., converted_parameters['eos_polytrope_gamma_1'], eos_logp2 - 1., converted_parameters['eos_polytrope_gamma_2'], causal) != 0:
             if 'mass_1_source' not in converted_parameters.keys():
                 lambda_1 = 0.0
                 lambda_2 = 0.0
