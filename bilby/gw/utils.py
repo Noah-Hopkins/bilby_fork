@@ -847,10 +847,21 @@ def lalsim_SimNeutronStarEOS3PieceCausalAnalytic(v1, log10p1_si, v2, log10p2_si,
     return SimNeutronStarEOS3PieceCausalAnalytic(v1, log10p1_si, v2, log10p2_si, v3)
 
 
-def lalsim_SimNeutronStarEOS3PDViableFamilyCheck(eos):
+def lalsim_SimNeutronStarEOS3PDViableFamilyCheck(p0, log10p1_si, p1, log10p2_si, p2, causal):
     from lalsimulation import SimNeutronStarEOS3PDViableFamilyCheck
+    try: 
+        p0 = float(p0)
+        p1 = float(p1)
+        p2 = float(p2)
+        log10p1_si = float(log10p1_si)
+        log10p2_si = float(log10p2_si)
+        causal = int(causal)
+    except ValueError:
+        raise ValueError("Unable to convert EOS parameters to floats or int")
+    except TypeError:
+        raise TypeError("Unable to convert EOS parameters to floats or int")
 
-    return SimNeutronStarEOS3PDViableFamilyCheck(eos)
+    return SimNeutronStarEOS3PDViableFamilyCheck(p0, log10p1_si, p1, log10p2_si, p2, causal)
 
 
 def lalsim_CreateSimNeutronStarFamily(eos, min_fam):
