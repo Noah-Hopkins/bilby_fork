@@ -363,6 +363,8 @@ def generate_component_masses_and_lambdas_from_central_pressures(converted_param
             added_keys = added_keys + [key for key in converted_parameters.keys()
                         if key not in original_keys]
         else:
+            converted_parameters['mass_1'] = 1.4
+            converted_parameters['mass_2'] = 1.4
             added_keys = added_keys + [key for key in converted_parameters.keys()
                         if key not in original_keys]
             return converted_parameters, added_keys
@@ -856,7 +858,7 @@ def spectral_params_to_lambda_1_lambda_2(gamma_0, gamma_1, gamma_2, gamma_3, mas
             lambda_2 = 0.0
             eos_check = False
         else:
-            family = lalsim_CreateSimNeutronStarFamily(eos)
+            family = lalsim_CreateSimNeutronStarFamily(eos, 3) # Currently set to have the family do both mass and pressure
             lambda_1, lambda_2, eos_check = neutron_star_family_physical_check(eos, family, mass_1_source, mass_2_source)
 
     return lambda_1, lambda_2, eos_check
@@ -902,15 +904,21 @@ def polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_
             mass_2_source = 1.4
             mass_1 = 1.4
             mass_2 = 1.4
+            ns_logp1 = -6.0075
+            ns_logp2 = -6.0075
             eos_check = False
-            return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, added_keys, eos_check
+            print("returned at opportunity #1.")
+            return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, ns_logp1, ns_logp2, added_keys, eos_check
         else:
             lambda_1 = 0.0
             lambda_2 = 0.0
             eos_check = False
+            print("returned at opportunity #2.")
             return lambda_1, lambda_2, eos_check
     else:
         if causal == 0:
+            if (eos_logp2 > 38.075): 
+                print(f" The cgs log joining pressures are {eos_logp1} and {eos_logp2}")
             eos = lalsim_SimNeutronStarEOS3PieceDynamicPolytrope(converted_parameters['eos_polytrope_gamma_0'], eos_logp1 - 1., converted_parameters['eos_polytrope_gamma_1'], eos_logp2 - 1., converted_parameters['eos_polytrope_gamma_2'])
         else:
             eos = lalsim_SimNeutronStarEOS3PieceCausalAnalytic(converted_parameters['eos_polytrope_gamma_0'], eos_logp1 - 1., converted_parameters['eos_polytrope_gamma_1'], eos_logp2 - 1., converted_parameters['eos_polytrope_gamma_2'])
@@ -922,33 +930,40 @@ def polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_
                 mass_2_source = 1.4
                 mass_1 = 1.4
                 mass_2 = 1.4
+                ns_logp1 = -6.0075
+                ns_logp2 = -6.0075
                 eos_check = False
-                return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, added_keys, eos_check
+                print("returned at opportunity #3.")
+                return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, ns_logp1, ns_logp2, added_keys, eos_check
             else:
                 lambda_1 = 0.0
                 lambda_2 = 0.0
                 eos_check = False
+                print("returned at opportunity #4.")
                 return lambda_1, lambda_2, eos_check
         else:
-            min_fam = 1
-            family = lalsim_CreateSimNeutronStarFamily(eos, min_fam)
+            fam_flag = 3
+            family = lalsim_CreateSimNeutronStarFamily(eos, fam_flag)
             if 'mass_1_source' not in converted_parameters.keys():
                 passing_parameters = {'ns_central_pressure_scale': converted_parameters['ns_central_pressure_scale'], 'ns_central_pressure_ratio': converted_parameters['ns_central_pressure_ratio'], 'luminosity_distance': converted_parameters['luminosity_distance']}
                 passing_parameters, added_keys = generate_component_masses_and_lambdas_from_central_pressures(passing_parameters, added_keys, eos, family)
-                if passing_parameters['eos_check'] == True:
-                    mass_1_source, mass_2_source, mass_1, mass_2, lambda_1, lambda_2, eos_check = passing_parameters['mass_1_source'], passing_parameters['mass_2_source'], passing_parameters['mass_1'], passing_parameters['mass_2'], passing_parameters['lambda_1'], passing_parameters['lambda_2'], passing_parameters['eos_check']
-                else:
-                    mass_1_source = 1.4
-                    mass_2_source = 1.4
-                    mass_1 = 1.4
-                    mass_2 = 1.4
+                #print(f"Full passing_parameters is {passing_parameters}")
+                #if passing_parameters['eos_check'] == True:
+                mass_1_source, mass_2_source, mass_1, mass_2, lambda_1, lambda_2, eos_check = passing_parameters['mass_1_source'], passing_parameters['mass_2_source'], passing_parameters['mass_1'], passing_parameters['mass_2'], passing_parameters['lambda_1'], passing_parameters['lambda_2'], passing_parameters['eos_check']
+                #else:
+                    #mass_1_source = 1.4
+                    #mass_2_source = 1.4
+                    #mass_1 = 1.4
+                    #mass_2 = 1.4
             else:
                 mass_1_source, mass_2_source, mass_1, mass_2 = converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['mass_1'], converted_parameters['mass_2']
                 lambda_1, lambda_2, eos_check = neutron_star_family_physical_check(eos, family, mass_1_source, mass_2_source)
         if 'mass_1_source' not in converted_parameters.keys():
             ns_logp1, ns_logp2 = passing_parameters['ns_central_log10_pressure_1'],passing_parameters['ns_central_log10_pressure_2']
+            #print("returned at opportunity #5.")
             return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, ns_logp1, ns_logp2, added_keys, eos_check
         else:
+            print("returned at opportunity #6.")
             return lambda_1, lambda_2, eos_check
 
 
