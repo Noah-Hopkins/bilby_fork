@@ -986,8 +986,8 @@ def neutron_star_family_physical_check(eos, family, mass_1_source, mass_2_source
     #family = lalsim_CreateSimNeutronStarFamily(eos)
     max_pseudo_enthalpy = lalsim_SimNeutronStarEOSMaxPseudoEnthalpy(eos)
     max_speed_of_sound = lalsim_SimNeutronStarEOSSpeedOfSoundGeometerized(max_pseudo_enthalpy, eos)
-    min_mass = lalsim_SimNeutronStarFamMinimumMass(family) / solar_mass
-    max_mass = lalsim_SimNeutronStarMaximumMass(family) / solar_mass
+    min_mass = lalsim_SimNeutronStarFamMinMass(family) / solar_mass
+    max_mass = lalsim_SimNeutronStarFamMaxMass(family) / solar_mass
     if max_speed_of_sound <= 1.1 and min_mass <= mass_1_source <= max_mass and min_mass <= mass_2_source <= max_mass:
         lambda_1 = lambda_from_mass_and_family(mass_1_source, family)
         lambda_2 = lambda_from_mass_and_family(mass_2_source, family)
