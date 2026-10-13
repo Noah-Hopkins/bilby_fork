@@ -894,7 +894,10 @@ def polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_
         whether eos is valid or not
 
     """
-    eos_logp1, eos_logp2 = log_pressure_reparameterization_conversion(converted_parameters['eos_polytrope_scaled_pressure_ratio'], converted_parameters['eos_polytrope_scaled_pressure_2'], 33.0)
+    if 'eos_polytrope_log10_pressure_1' in converted_parameters.keys():
+        eos_logp1, eos_logp2 = converted_parameters['eos_polytrope_log10_pressure_1'], converted_parameters['eos_polytrope_log10_pressure_2']
+    elif 'eos_polytrope_scaled_pressure_ratio' in converted_parameters.keys():
+        eos_logp1, eos_logp2 = log_pressure_reparameterization_conversion(converted_parameters['eos_polytrope_scaled_pressure_ratio'], converted_parameters['eos_polytrope_scaled_pressure_2'], 33.0)
     eos_check = True
     if eos_logp1 >= eos_logp2:
         if 'mass_1_source' not in converted_parameters.keys():
