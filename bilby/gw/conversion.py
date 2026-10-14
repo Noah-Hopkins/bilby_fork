@@ -408,7 +408,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
     if not any([key in converted_parameters for key in
                 ['lambda_1', 'lambda_2',
                  'lambda_tilde', 'delta_lambda_tilde', 'lambda_symmetric',
-                 'eos_polytrope_gamma_0', 'eos_2p_polytrope_gamma_0', 'eos_spectral_pca_gamma_0', 'eos_v1']]):
+                 'eos_polytrope_gamma_0', 'eos_spectral_pca_gamma_0', 'eos_v1']]):
         converted_parameters['lambda_1'] = 0
         converted_parameters['lambda_2'] = 0
         added_keys = added_keys + ['lambda_1', 'lambda_2']
