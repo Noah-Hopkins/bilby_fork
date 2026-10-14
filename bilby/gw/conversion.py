@@ -950,13 +950,7 @@ def polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_
             if 'mass_1_source' not in converted_parameters.keys():
                 passing_parameters = {'ns_central_pressure_scale': converted_parameters['ns_central_pressure_scale'], 'ns_central_pressure_ratio': converted_parameters['ns_central_pressure_ratio'], 'luminosity_distance': converted_parameters['luminosity_distance']}
                 passing_parameters, added_keys = generate_component_masses_and_lambdas_from_central_pressures(passing_parameters, added_keys, eos, family)
-                #if passing_parameters['eos_check'] == True:
                 mass_1_source, mass_2_source, mass_1, mass_2, lambda_1, lambda_2, eos_check = passing_parameters['mass_1_source'], passing_parameters['mass_2_source'], passing_parameters['mass_1'], passing_parameters['mass_2'], passing_parameters['lambda_1'], passing_parameters['lambda_2'], passing_parameters['eos_check']
-                #else:
-                    #mass_1_source = 1.4
-                    #mass_2_source = 1.4
-                    #mass_1 = 1.4
-                    #mass_2 = 1.4
             else:
                 mass_1_source, mass_2_source, mass_1, mass_2 = converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['mass_1'], converted_parameters['mass_2']
                 lambda_1, lambda_2, eos_check = neutron_star_family_physical_check(eos, family, mass_1_source, mass_2_source)
@@ -992,7 +986,6 @@ def neutron_star_family_physical_check(eos, family, mass_1_source, mass_2_source
 
     """
     eos_check = True
-    #family = lalsim_CreateSimNeutronStarFamily(eos)
     max_pseudo_enthalpy = lalsim_SimNeutronStarEOSMaxPseudoEnthalpy(eos)
     max_speed_of_sound = lalsim_SimNeutronStarEOSSpeedOfSoundGeometerized(max_pseudo_enthalpy, eos)
     min_mass = lalsim_SimNeutronStarFamMinMass(family) / solar_mass
@@ -1036,7 +1029,6 @@ def neutron_star_family_physical_check_and_source_masses_in_central_pressure(eos
 
     """
     eos_check = True
-    #family = lalsim_CreateSimNeutronStarFamily(eos)
     max_pseudo_enthalpy = lalsim_SimNeutronStarEOSMaxPseudoEnthalpy(eos)
     max_speed_of_sound = lalsim_SimNeutronStarEOSSpeedOfSoundGeometerized(max_pseudo_enthalpy, eos)
 
