@@ -711,19 +711,31 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
             logp2 = converted_parameters['eos_log10_pressure2_cgs']
             m1s = converted_parameters['mass_1_source']
             m2s = converted_parameters['mass_2_source']
-            all_lambda_1 = np.empty(0)
-            all_lambda_2 = np.empty(0)
-            all_eos_check = np.empty(0, dtype=bool)
-            for (v_1, v_2, v_3, logp_1, logp_2, m1_s, m2_s) in zip(v1, v2, v3, logp1, logp2, m1s, m2s):
-                lambda_1, lambda_2, eos_check = \
-                    polytrope_or_causal_params_to_lambda_1_lambda_2(
-                        v_1, logp_1, v_2, logp_2, v_3, m1_s, m2_s, causal=1)
-                all_lambda_1 = np.append(all_lambda_1, lambda_1)
-                all_lambda_2 = np.append(all_lambda_2, lambda_2)
-                all_eos_check = np.append(all_eos_check, eos_check)
-            converted_parameters['lambda_1'] = all_lambda_1
-            converted_parameters['lambda_2'] = all_lambda_2
-            converted_parameters['eos_check'] = all_eos_check
+            #all_lambda_1 = np.empty(0)
+            #all_lambda_2 = np.empty(0)
+            #all_eos_check = np.empty(0, dtype=bool)
+            def _call(v_1, v_2, v_3, logp_1, logp_2, m1_s, m2_s):
+                call_parameters = dict(converted_parameters)
+                call_parameters['eos_v1'] = v_1
+                call_parameters['eos_v2'] = v_2
+                call_parameters['eos_v3'] = v_3
+                call_parameters['eos_log10_pressure1_cgs'] = logp_1
+                call_parameters['eos_log10_pressure2_cgs'] = logp_2
+                call_parameters['mass_1_source'] = m1_s
+                call_parameters['mass_2_source'] = m2_s
+                try: 
+                    lambda_1, lambda_2, eos_check = \
+                            polytrope_or_causal_params_to_lambda_1_lambda_2(call_parameters, added_keys, causal = 0)
+                except: 
+                    return 0.0, 0.0, False
+                return lambda_1, lambda_2, eos_check
+            vfunc = np.vectorize(_call, otypes=[float, float, bool])
+            (converted_parameters['lambda_1'],
+            converted_parameters['lambda_2'],
+            converted_parameters['eos_check']) = vfunc(v_1, v_2, v_3, logp_1, logp_2, m1_s, m2_s)
+            samples_rejected = int(np.sum(~np.asarray(converted_parameters['eos_check'], dtype = bool)))
+            if samples_rejected: 
+                logger.info("EOS conversion: %d/%d samples rejected (eos_check = False)", samples_rejected, max_len)
             for key in float_eos_params.keys():
                 converted_parameters[key] = float_eos_params[key]
     elif 'lambda_symmetric' in converted_parameters.keys():
@@ -888,6 +900,8 @@ def polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_
     """
     if 'eos_polytrope_log10_pressure_1' in converted_parameters.keys():
         eos_logp1, eos_logp2 = converted_parameters['eos_polytrope_log10_pressure_1'], converted_parameters['eos_polytrope_log10_pressure_2']
+    elif 'eos_log10_pressure1_cgs' in converted_parameters.keys():
+        eos_logp1, eos_logp2 = converted_parameters['eos_log10_pressure1_cgs'], converted_parameters['eos_log10_pressure2_cgs']
     elif 'eos_polytrope_scaled_pressure_ratio' in converted_parameters.keys():
         eos_logp1, eos_logp2 = log_pressure_reparameterization_conversion(converted_parameters['eos_polytrope_scaled_pressure_ratio'], converted_parameters['eos_polytrope_scaled_pressure_2'], 33.0)
     eos_check = True
@@ -912,7 +926,7 @@ def polytrope_or_causal_params_to_lambda_1_lambda_2(converted_parameters, added_
         if causal == 0:
             eos = lalsim_SimNeutronStarEOS3PieceDynamicPolytrope(converted_parameters['eos_polytrope_gamma_0'], eos_logp1 - 1., converted_parameters['eos_polytrope_gamma_1'], eos_logp2 - 1., converted_parameters['eos_polytrope_gamma_2'])
         else:
-            eos = lalsim_SimNeutronStarEOS3PieceCausalAnalytic(converted_parameters['eos_polytrope_gamma_0'], eos_logp1 - 1., converted_parameters['eos_polytrope_gamma_1'], eos_logp2 - 1., converted_parameters['eos_polytrope_gamma_2'])
+            eos = lalsim_SimNeutronStarEOS3PieceCausalAnalytic(converted_parameters['eos_v1'], eos_log1 - 1., converted_parameters['eos_v2'], eos_logp2 - 1., converted_parameters['eos_v3'])
         if lalsim_SimNeutronStarEOS3PDViableFamilyCheck(converted_parameters['eos_polytrope_gamma_0'], eos_logp1 - 1., converted_parameters['eos_polytrope_gamma_1'], eos_logp2 - 1., converted_parameters['eos_polytrope_gamma_2'], causal) != 0:
             if 'mass_1_source' not in converted_parameters.keys():
                 lambda_1 = 0.0
