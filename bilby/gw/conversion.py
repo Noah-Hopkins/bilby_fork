@@ -483,7 +483,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
             converted_parameters['eos_check'] = np.array(all_eos_check)
             for key in float_eos_params.keys():
                 converted_parameters[key] = float_eos_params[key]
-    elif 'eos_polytrope_gamma_0' and 'eos_polytrope_log10_pressure_1' and 'mass_1_source' in converted_parameters.keys():
+    elif 'eos_polytrope_gamma_0' and 'eos_polytrope_log10_pressure_1' and 'mass_1' in converted_parameters.keys():
         float_eos_params = {}
         max_len = 1
         converted_parameters = generate_source_frame_parameters(converted_parameters)
@@ -544,7 +544,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                 logger.info("EOS conversion: %d/%d samples rejected (eos_check = False)", samples_rejected, max_len)
             for key in float_eos_params.keys():
                 converted_parameters[key] = float_eos_params[key]
-    elif 'eos_polytrope_gamma_0' and 'eos_polytrope_scaled_pressure_ratio' and 'mass_1_source' in converted_parameters.keys():
+    elif 'eos_polytrope_gamma_0' and 'eos_polytrope_scaled_pressure_ratio' and 'mass_1' in converted_parameters.keys():
         float_eos_params = {}
         max_len = 1
         converted_parameters = generate_source_frame_parameters(converted_parameters)
