@@ -342,7 +342,7 @@ def generate_component_masses_and_lambdas_from_central_pressures(converted_param
         return converted_parameters, added_keys
 
 
-    elif 'ns_central_pressure_scale' and 'ns_central_pressure_ratio' in converted_parameters.keys():
+    elif 'ns_central_pressure_scale'in converted_parameters.keys() and 'ns_central_pressure_ratio' in converted_parameters.keys():
         converted_parameters['ns_central_log10_pressure_2'], converted_parameters['ns_central_log10_pressure_1'] = log_pressure_reparameterization_conversion(converted_parameters['ns_central_pressure_ratio'], converted_parameters['ns_central_pressure_scale'], 33.0)
         
         converted_parameters['lambda_1'], converted_parameters['lambda_2'], converted_parameters['mass_1_source'], converted_parameters['mass_2_source'], converted_parameters['eos_check'] = neutron_star_family_physical_check_and_source_masses_in_central_pressure(eos, family, 10**(converted_parameters['ns_central_log10_pressure_1']-1.), 10**(converted_parameters['ns_central_log10_pressure_2']-1.))
@@ -483,7 +483,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
             converted_parameters['eos_check'] = np.array(all_eos_check)
             for key in float_eos_params.keys():
                 converted_parameters[key] = float_eos_params[key]
-    elif 'eos_polytrope_gamma_0' and 'eos_polytrope_log10_pressure_1' and 'mass_1' in converted_parameters.keys():
+    elif 'eos_polytrope_gamma_0' in converted_parameters.keys() and 'eos_polytrope_log10_pressure_1' in converted_parameters.keys() and ('mass_1' in converted_parameters.keys() or 'mass_1_source' in converted_parameters.keys()):
         float_eos_params = {}
         max_len = 1
         converted_parameters = generate_source_frame_parameters(converted_parameters)
@@ -532,7 +532,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                 try:
                     lambda_1, lambda_2, eos_check = \
                         polytrope_or_causal_params_to_lambda_1_lambda_2(call_parameters, added_keys, causal = 0)
-                except:
+                except RuntimeError:
                     return 0.0, 0.0, False
                 return lambda_1, lambda_2, eos_check
             vfunc = np.vectorize(_call, otypes=[float, float, bool])
@@ -544,7 +544,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                 logger.info("EOS conversion: %d/%d samples rejected (eos_check = False)", samples_rejected, max_len)
             for key in float_eos_params.keys():
                 converted_parameters[key] = float_eos_params[key]
-    elif 'eos_polytrope_gamma_0' and 'eos_polytrope_scaled_pressure_ratio' and 'mass_1' in converted_parameters.keys():
+    elif 'eos_polytrope_gamma_0' in converted_parameters.keys() and 'eos_polytrope_scaled_pressure_ratio' in converted_parameters.keys() and ('mass_1' in converted_parameters.keys() or 'mass_1_source' in converted_parameters.keys()):
         float_eos_params = {}
         max_len = 1
         converted_parameters = generate_source_frame_parameters(converted_parameters)
@@ -593,7 +593,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                 try:
                     lambda_1, lambda_2, eos_check = \
                         polytrope_or_causal_params_to_lambda_1_lambda_2(call_parameters, added_keys, causal = 0)
-                except:
+                except RuntimeError:
                     return 0.0, 0.0, False
                 return lambda_1, lambda_2, eos_check
             vfunc = np.vectorize(_call, otypes=[float, float, bool])
@@ -605,7 +605,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                 logger.info("EOS conversion: %d/%d samples rejected (eos_check = False)", samples_rejected, max_len)
             for key in float_eos_params.keys():
                 converted_parameters[key] = float_eos_params[key]
-    elif 'eos_polytrope_gamma_0' and 'ns_central_pressure_scale' and 'eos_polytrope_scaled_pressure_ratio' in converted_parameters.keys():
+    elif 'eos_polytrope_gamma_0' in converted_parameters.keys() and 'ns_central_pressure_scale' in converted_parameters.keys() and 'eos_polytrope_scaled_pressure_ratio' in converted_parameters.keys():
         float_eos_params = {}
         max_len = 1
         converted_parameters = generate_source_frame_parameters(converted_parameters)
@@ -664,7 +664,14 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                 try:
                     lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, ns_logp1, ns_logp2, _added_keys, eos_check = \
                         polytrope_or_causal_params_to_lambda_1_lambda_2(call_parameters, added_keys, causal = 0)
-                except:
+                except TypeError:
+                    print(f"_call() had a TypeError.")
+                    return 0.0, 0.0, 1.4, 1.4, 1.4, 1.4, 0.0, 0.0, False
+                except ValueError:
+                    print(f"_call() had a ValueError.")
+                    return 0.0, 0.0, 1.4, 1.4, 1.4, 1.4, 0.0, 0.0, False
+
+                except RuntimeError:
                     return 0.0, 0.0, 1.4, 1.4, 1.4, 1.4, 0.0, 0.0, False
                 return lambda_1, lambda_2, mass_1_source, mass_2_source, mass_1, mass_2, ns_logp1, ns_logp2, eos_check
             vfunc = np.vectorize(_call, otypes=[float, float, float, float, float, float, float, float, bool])
@@ -726,7 +733,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
                 try: 
                     lambda_1, lambda_2, eos_check = \
                             polytrope_or_causal_params_to_lambda_1_lambda_2(call_parameters, added_keys, causal = 0)
-                except: 
+                except RuntimeError: 
                     return 0.0, 0.0, False
                 return lambda_1, lambda_2, eos_check
             vfunc = np.vectorize(_call, otypes=[float, float, bool])
