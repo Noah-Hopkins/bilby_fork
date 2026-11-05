@@ -687,7 +687,7 @@ def convert_to_lal_binary_neutron_star_parameters(parameters):
     return converted_parameters, added_keys
 
 
-def log_pressure_reparameterization_conversion(scaled_pressure_ratio, scaled_pressure_2):
+def log_pressure_reparameterization_conversion(scaled_pressure_ratio, scaled_pressure_2, minimum_pressure=33.0):
     '''
     Converts the reparameterization joining pressures from
         (scaled_pressure_ratio,scaled_pressure_2) to (log10_pressure_1,log10_pressure_2).
@@ -696,13 +696,15 @@ def log_pressure_reparameterization_conversion(scaled_pressure_ratio, scaled_pre
         mimics identical uniform priors on log10_pressure_1 and log10_pressure_2
         where samples with log10_pressure_2 > log10_pressure_1 are rejected.
     This reparameterization allows for a faster initialization.
-    A minimum log10_pressure of 33 (in cgs units) is chosen to be slightly higher than the low-density crust EOS
-        that is stitched to the dynamic polytrope EOS model in LALSimulation.
+    The default minimum log10_pressure of 33 (in cgs units) is chosen to be slightly higher than the low-density
+        crust EOS that is stitched to the dynamic polytrope EOS model in LALSimulation.
 
     Parameters
     ----------
     scaled_pressure_ratio, scaled_pressure_2: float
         reparameterizations of the dividing pressures
+    minimum_pressure: float, optional
+        log10 of the pressure (cgs units) that scaled_pressure_2 = 0 corresponds to; default 33.0
 
     Returns
     -------
@@ -710,7 +712,6 @@ def log_pressure_reparameterization_conversion(scaled_pressure_ratio, scaled_pre
         joining pressures in the original parameterization
 
     '''
-    minimum_pressure = 33.
     log10_pressure_1 = (scaled_pressure_ratio * scaled_pressure_2) + minimum_pressure
     log10_pressure_2 = minimum_pressure + scaled_pressure_2
 
