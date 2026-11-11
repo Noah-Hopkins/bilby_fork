@@ -1196,8 +1196,15 @@ class BilbyMCMCSampler(object):
             logger.info(f"Using initial sample {initial_sample}")
 
         initial_sample = Sample(initial_sample)
-        initial_sample[LOGLKEY] = self.log_likelihood(initial_sample)
+        # Prior first: a user-supplied initial sample can lie outside the prior
+        # or fail a constraint, and the likelihood must not see such a point
         initial_sample[LOGPKEY] = self.log_prior(initial_sample)
+        if not np.isfinite(initial_sample[LOGPKEY]):
+            raise SamplerError(
+                "The initial sample has zero prior probability (it is outside the "
+                f"prior range or fails a constraint): {initial_sample.sample_dict}"
+            )
+        initial_sample[LOGLKEY] = self.log_likelihood(initial_sample)
 
         self.chain = Chain(initial_sample=initial_sample)
         self.set_convergence_inputs(convergence_inputs)

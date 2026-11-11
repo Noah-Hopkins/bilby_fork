@@ -85,6 +85,82 @@ class TestBilbyMCMCSampler(unittest.TestCase):
         self.assertEqual(sampler.accepted + sampler.rejected, nsteps)
         self.assertTrue(isinstance(sampler.samples, pd.DataFrame))
 
+    def test_initial_sample_outside_prior_is_rejected_before_the_likelihood(self):
+        dump = bilby.core.sampler.base_sampler._sampling_convenience_dump
+        calls = []
+        original = dump.likelihood.log_likelihood
+
+        def counting_log_likelihood(params):
+            calls.append(dict(params))
+            return original(params)
+
+        dump.likelihood.log_likelihood = counting_log_likelihood
+        try:
+            with self.assertRaises(SamplerError):
+                BilbyMCMCSampler(
+                    convergence_inputs=self.convergence_inputs,
+                    proposal_cycle="default_noNFnoGMnoKD",
+                    beta=1,
+                    Tindex=0,
+                    Eindex=0,
+                    use_ratio=False,
+                    initial_sample_dict=dict(m=10.0, c=0.0),
+                )
+        finally:
+            dump.likelihood.log_likelihood = original
+        self.assertEqual(calls, [])
+
+    def test_initial_sample_failing_a_constraint_is_rejected_before_the_likelihood(self):
+        dump = bilby.core.sampler.base_sampler._sampling_convenience_dump
+        priors = bilby.core.prior.PriorDict(dict(
+            m=bilby.core.prior.Uniform(0, 5, 'm'),
+            c=bilby.core.prior.Uniform(-2, 2, 'c'),
+            m_plus_c=bilby.core.prior.Constraint(0, 1, 'm_plus_c'),
+        ))
+
+        def conversion(sample):
+            sample = dict(sample)
+            sample["m_plus_c"] = sample["m"] + sample["c"]
+            return sample
+
+        priors.conversion_function = conversion
+        calls = []
+        original = dump.likelihood.log_likelihood
+
+        def counting_log_likelihood(params):
+            calls.append(dict(params))
+            return original(params)
+
+        dump.likelihood.log_likelihood = counting_log_likelihood
+        bilby.core.sampler.base_sampler._initialize_global_variables(
+            dump.likelihood, priors, ['m', 'c'], False, priors.sample(),
+        )
+        try:
+            with self.assertRaises(SamplerError):
+                BilbyMCMCSampler(
+                    convergence_inputs=self.convergence_inputs,
+                    proposal_cycle="default_noNFnoGMnoKD",
+                    beta=1,
+                    Tindex=0,
+                    Eindex=0,
+                    use_ratio=False,
+                    initial_sample_dict=dict(m=4.0, c=1.0),
+                )
+            self.assertEqual(calls, [])
+            sampler = BilbyMCMCSampler(
+                convergence_inputs=self.convergence_inputs,
+                proposal_cycle="default_noNFnoGMnoKD",
+                beta=1,
+                Tindex=0,
+                Eindex=0,
+                use_ratio=False,
+                initial_sample_dict=dict(m=0.5, c=0.2),
+            )
+        finally:
+            dump.likelihood.log_likelihood = original
+        self.assertEqual(len(calls), 1)
+        self.assertTrue(np.isfinite(sampler.chain.current_sample[bilby.bilby_mcmc.utils.LOGPKEY]))
+
 
 def test_get_expected_outputs():
     label = "par0"
