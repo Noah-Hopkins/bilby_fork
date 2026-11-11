@@ -635,6 +635,7 @@ def _base_lal_cbc_fd_waveform(
     else:
         wf_func = lalsim_SimInspiralFD
     try:
+        #print(f"mass_1, mass_2, spin_1x, spin_1y, spin_1z, spin_2x, spin_2y, spin_2z, luminosity_distance, iota, phase, longitude_ascending_nodes, eccentricity, mean_per_ano, delta_frequency, start_frequency, maximum_frequency, reference_frequency, waveform_dictionary, approximant is {mass_1, mass_2, spin_1x, spin_1y, spin_1z, spin_2x, spin_2y, spin_2z, luminosity_distance, iota, phase, longitude_ascending_nodes, eccentricity, mean_per_ano, delta_frequency, start_frequency, maximum_frequency, reference_frequency, waveform_dictionary, approximant}")
         hplus, hcross = wf_func(
             mass_1, mass_2, spin_1x, spin_1y, spin_1z, spin_2x, spin_2y,
             spin_2z, luminosity_distance, iota, phase,

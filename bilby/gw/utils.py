@@ -831,6 +831,23 @@ def lalsim_SimNeutronStarEOS3PieceDynamicPolytrope(g0, log10p1_si, g1, log10p2_s
     return SimNeutronStarEOS3PieceDynamicPolytrope(g0, log10p1_si, g1, log10p2_si, g2)
 
 
+def lalsim_SimNeutronStarEOS6ParameterHybrid(g0, log10p1_si, g1, log10pt_si, deps, cs2):
+    from lalsimulation import SimNeutronStarEOS6ParameterHybrid
+    try:
+        g0 = float(g0)
+        g1 = float(g1)
+        log10p1_si = float(log10p1_si)
+        log10pt_si = float(log10pt_si)
+        deps = float(deps)
+        cs2 = float(cs2)
+    except ValueError:
+        raise ValueError("Unable to convert EOS hybrid parameters to floats")
+    except TypeError:
+        raise TypeError("Unable to convert EOS hybrid parameters to floats")
+
+    return SimNeutronStarEOS6ParameterHybrid(g0, log10p1_si, g1, log10pt_si, deps, cs2)
+
+
 def lalsim_SimNeutronStarEOS3PieceCausalAnalytic(v1, log10p1_si, v2, log10p2_si, v3):
     from lalsimulation import SimNeutronStarEOS3PieceCausalAnalytic
     try:
