@@ -417,6 +417,48 @@ class TestPriorDict(unittest.TestCase):
             self.assertFalse(self.prior_set_from_dict.test_redundancy(key=key))
 
 
+class TestConstraintEvaluationInLnProb(unittest.TestCase):
+    """
+    ln_prob applies the constraints to samples inside the prior ranges and never calls the conversion
+    function on samples outside them (the function behind a constraint, e.g. an EOS solver, is only
+    defined inside the ranges).
+    """
+
+    def setUp(self):
+        self.seen = []
+
+        def conversion_function(parameters):
+            converted = parameters.copy()
+            self.seen.append(np.atleast_1d(parameters["mass_1"]).copy())
+            converted["delta_mass"] = parameters["mass_1"] - parameters["mass_2"]
+            return converted
+
+        self.priors = bilby.core.prior.PriorDict(conversion_function=conversion_function)
+        self.priors["mass_1"] = bilby.core.prior.Uniform(minimum=1, maximum=2)
+        self.priors["mass_2"] = bilby.core.prior.Uniform(minimum=1, maximum=2)
+        self.priors["delta_mass"] = bilby.core.prior.Constraint(minimum=0, maximum=2)
+        self.priors._cached_normalizations[("mass_1", "mass_2")] = 1.0
+
+    def test_in_range_sample_failing_the_constraint_is_rejected(self):
+        self.assertTrue(np.isfinite(self.priors.ln_prob(dict(mass_1=1.5, mass_2=1.2))))
+        self.assertEqual(self.priors.ln_prob(dict(mass_1=1.2, mass_2=1.5)), -np.inf)
+        self.assertEqual(len(self.seen), 2)
+
+    def test_out_of_range_sample_never_reaches_the_conversion(self):
+        self.assertEqual(self.priors.ln_prob(dict(mass_1=3.0, mass_2=1.2)), -np.inf)
+        self.assertEqual(self.seen, [])
+
+    def test_arrays_evaluate_the_constraint_on_the_in_range_subset_only(self):
+        sample = dict(mass_1=np.array([1.5, 1.2, 3.0, 1.8]), mass_2=np.array([1.2, 1.5, 1.2, 1.1]))
+        ln_prob = self.priors.ln_prob(sample, axis=0)
+        self.assertEqual(list(np.isfinite(ln_prob)), [True, False, False, True])
+        self.assertEqual(len(self.seen), 1)
+        self.assertEqual(list(self.seen[0]), [1.5, 1.2, 1.8])
+        all_out = dict(mass_1=np.array([3.0, 0.5]), mass_2=np.array([1.2, 1.2]))
+        self.assertEqual(list(self.priors.ln_prob(all_out, axis=0)), [-np.inf, -np.inf])
+        self.assertEqual(len(self.seen), 1)
+
+
 class TestJsonIO(unittest.TestCase):
     def setUp(self):
         mvg = bilby.core.prior.MultivariateGaussianDist(

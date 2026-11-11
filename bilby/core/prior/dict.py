@@ -1,4 +1,5 @@
 import json
+import math
 import os
 import re
 from importlib import import_module
@@ -621,18 +622,26 @@ class PriorDict(dict):
             ratio = self.normalize_constraint_factor(tuple(sample.keys()))
         else:
             ratio = 1
-        if not aac.is_jax_namespace(xp) and xp.all(xp.isfinite(ln_prob)):
-            return ln_prob
-        else:
-            if isinstance(ln_prob, float):
-                if xp.all(self.evaluate_constraints(sample, xp=xp)):
-                    return ln_prob + xp.log(ratio)
-                else:
-                    return -np.inf
-            else:
-                keep = self.evaluate_constraints(sample, xp=xp)
-                constrained_ln_prob = xp.where(keep, ln_prob + xp.log(ratio), -xp.inf)
-                return constrained_ln_prob
+        # The constraints are evaluated only for samples inside the prior ranges: a sample outside them is
+        # rejected already, and the conversion function behind a constraint (e.g. an EOS solver) must not be
+        # called on parameter values outside the ranges it is defined for.
+        if isinstance(ln_prob, float):
+            if not np.isfinite(ln_prob):
+                return ln_prob
+            if xp.all(self.evaluate_constraints(sample, xp=xp)):
+                return ln_prob + math.log(ratio)
+            return -np.inf
+        if aac.is_jax_namespace(xp):
+            keep = self.evaluate_constraints(sample, xp=xp)
+            return xp.where(keep, ln_prob + math.log(ratio), -xp.inf)
+        in_bounds = xp.isfinite(ln_prob)
+        constrained_ln_prob = xp.full_like(ln_prob, -xp.inf)
+        if xp.any(in_bounds):
+            subsample = {key: xp.asarray(value)[in_bounds] if xp.asarray(value).ndim else value
+                         for key, value in sample.items()}
+            keep = self.evaluate_constraints(subsample, xp=xp)
+            constrained_ln_prob[in_bounds] = xp.where(keep, ln_prob[in_bounds] + math.log(ratio), -xp.inf)
+        return constrained_ln_prob
 
     @xp_wrap
     def cdf(self, sample, *, xp=None):
