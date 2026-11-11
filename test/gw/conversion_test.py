@@ -1030,6 +1030,42 @@ class TestEquationOfStateConversions(unittest.TestCase):
         self.assertGreaterEqual(conversion.MINIMUM_CENTRAL_LOG10_PRESSURE_SI, family_floor)
         self.assertLess(conversion.MINIMUM_CENTRAL_LOG10_PRESSURE_SI - family_floor, 1e-3)
 
+    def test_reparameterization_inverses_round_trip(self):
+        '''
+        The inverse functions return the sampled parameters that the conversions map back onto the
+        given pressures, with the conversions' own default offsets, and refuse pressures no sampled
+        point in the prior ranges reaches.
+        '''
+        for log10_pc1, log10_pc2 in [(34.0, 33.9), (35.5, 33.0), (34.3611, 33.7254)]:
+            ratio, scale = conversion.central_pressure_reparameterization_inverse(log10_pc1, log10_pc2)
+            self.assertGreaterEqual(ratio, 0)
+            self.assertLessEqual(ratio, 1)
+            back = conversion.central_pressure_reparameterization_conversion(ratio, scale)
+            self.assertAlmostEqual(back[0], log10_pc1)
+            self.assertAlmostEqual(back[1], log10_pc2)
+        ratio, scale = conversion.central_pressure_reparameterization_inverse(34.0, 33.9)
+        self.assertAlmostEqual(scale, 34.0 - conversion.MINIMUM_CENTRAL_LOG10_PRESSURE_SI)
+        ratio, scale = conversion.central_pressure_reparameterization_inverse(34.0, 33.9, minimum_pressure_si=32.0)
+        self.assertAlmostEqual(scale, 2.0)
+        self.assertAlmostEqual(ratio, 0.95)
+        for bad in [(32.0, 31.0), (34.0, 32.0), (33.9, 34.0)]:
+            with self.assertRaises(ValueError):
+                conversion.central_pressure_reparameterization_inverse(*bad)
+
+        for log10_p1, log10_p2 in [(34.5, 35.5), (34.08, 34.8), (33.0, 36.0)]:
+            ratio, scaled = conversion.log_pressure_reparameterization_inverse(log10_p1, log10_p2)
+            self.assertGreaterEqual(ratio, 0)
+            self.assertLessEqual(ratio, 1)
+            back = conversion.log_pressure_reparameterization_conversion(ratio, scaled)
+            self.assertAlmostEqual(back[0], log10_p1)
+            self.assertAlmostEqual(back[1], log10_p2)
+        ratio, scaled = conversion.log_pressure_reparameterization_inverse(34.5, 35.5)
+        self.assertAlmostEqual(scaled, 2.5)
+        self.assertAlmostEqual(ratio, 0.6)
+        for bad in [(33.0, 33.0), (32.5, 34.0), (35.0, 34.0)]:
+            with self.assertRaises(ValueError):
+                conversion.log_pressure_reparameterization_inverse(*bad)
+
     def test_polytrope_central_pressures_round_trip(self):
         '''
         The masses and tidal deformabilities from a pair of central pressures agree with the

@@ -809,6 +809,43 @@ def log_pressure_reparameterization_conversion(scaled_pressure_ratio, scaled_pre
     return log10_pressure_1, log10_pressure_2
 
 
+def log_pressure_reparameterization_inverse(log10_pressure_1, log10_pressure_2, minimum_pressure=33.0):
+    '''
+    Inverse of log_pressure_reparameterization_conversion: the sampled
+        (scaled_pressure_ratio, scaled_pressure_2) of the joining pressures
+        (log10_pressure_1, log10_pressure_2). Use it to write an injection or an
+        initial sample in the sampled parameters with the same offset the
+        conversion applies.
+
+    Parameters
+    ----------
+    log10_pressure_1, log10_pressure_2: float
+        joining pressures in log10 cgs units, log10_pressure_1 <= log10_pressure_2
+    minimum_pressure: float, optional
+        log10 of the pressure (cgs units) that scaled_pressure_2 = 0 corresponds to; default 33.0
+
+    Returns
+    -------
+    scaled_pressure_ratio, scaled_pressure_2: float
+        reparameterizations of the dividing pressures
+
+    Raises
+    ------
+    ValueError
+        if log10_pressure_2 is not above minimum_pressure or log10_pressure_1 is not between them,
+        since no sampled point in the prior ranges maps there
+
+    '''
+    scaled_pressure_2 = log10_pressure_2 - minimum_pressure
+    if scaled_pressure_2 <= 0:
+        raise ValueError(f"log10_pressure_2 = {log10_pressure_2} must be above the offset {minimum_pressure}")
+    scaled_pressure_ratio = (log10_pressure_1 - minimum_pressure) / scaled_pressure_2
+    if not 0 <= scaled_pressure_ratio <= 1:
+        raise ValueError(f"log10_pressure_1 = {log10_pressure_1} must lie between the offset {minimum_pressure} "
+                         f"and log10_pressure_2 = {log10_pressure_2}")
+    return scaled_pressure_ratio, scaled_pressure_2
+
+
 def spectral_pca_to_spectral(gamma_pca_0, gamma_pca_1, gamma_pca_2, gamma_pca_3):
     '''
     Change of basis on parameter space
@@ -1053,6 +1090,46 @@ def central_pressure_reparameterization_conversion(ns_central_pressure_ratio, ns
     log10_ns_central_pressure_1_si = minimum_pressure_si + ns_central_pressure_scale
     log10_ns_central_pressure_2_si = ns_central_pressure_ratio * ns_central_pressure_scale + minimum_pressure_si
     return log10_ns_central_pressure_1_si, log10_ns_central_pressure_2_si
+
+
+def central_pressure_reparameterization_inverse(log10_ns_central_pressure_1_si, log10_ns_central_pressure_2_si,
+                                                minimum_pressure_si=MINIMUM_CENTRAL_LOG10_PRESSURE_SI):
+    '''
+    Inverse of central_pressure_reparameterization_conversion: the sampled
+        (ns_central_pressure_ratio, ns_central_pressure_scale) of a pair of NS central pressures.
+        Use it to write an injection or an initial sample in the sampled parameters with the
+        same offset the conversion applies.
+
+    Parameters
+    ----------
+    log10_ns_central_pressure_1_si, log10_ns_central_pressure_2_si: float
+        NS central pressures in log10 Pa, pressure 1 >= pressure 2
+    minimum_pressure_si: float, optional
+        log10 of the pressure (Pa) that ns_central_pressure_scale = 0 corresponds to;
+        default MINIMUM_CENTRAL_LOG10_PRESSURE_SI
+
+    Returns
+    -------
+    ns_central_pressure_ratio, ns_central_pressure_scale: float
+        ratio = (logp2 - minimum) / (logp1 - minimum) in [0, 1], scale = logp1 - minimum
+
+    Raises
+    ------
+    ValueError
+        if pressure 1 is not above the floor or pressure 2 is not between the floor and pressure 1,
+        since no sampled point in the prior ranges maps there
+
+    '''
+    ns_central_pressure_scale = log10_ns_central_pressure_1_si - minimum_pressure_si
+    if ns_central_pressure_scale <= 0:
+        raise ValueError(f"log10_ns_central_pressure_1_si = {log10_ns_central_pressure_1_si} must be above the "
+                         f"floor {minimum_pressure_si}")
+    ns_central_pressure_ratio = (log10_ns_central_pressure_2_si - minimum_pressure_si) / ns_central_pressure_scale
+    if not 0 <= ns_central_pressure_ratio <= 1:
+        raise ValueError(f"log10_ns_central_pressure_2_si = {log10_ns_central_pressure_2_si} must lie between the "
+                         f"floor {minimum_pressure_si} and log10_ns_central_pressure_1_si = "
+                         f"{log10_ns_central_pressure_1_si}")
+    return ns_central_pressure_ratio, ns_central_pressure_scale
 
 
 def lambda_from_central_pressure_and_family(pressure_si, mass_source, family):
