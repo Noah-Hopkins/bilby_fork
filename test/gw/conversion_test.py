@@ -1165,6 +1165,107 @@ class TestEquationOfStateConversions(unittest.TestCase):
         self.assertEqual(out['lambda_1'][1], 0.0)
         self.assertTrue(np.all(out['mass_1'][[0, 2]] >= out['mass_2'][[0, 2]]))
 
+    # The hybrid EOS on the central-pressure path. The reference EOS is the twin-star injection of eos_two_step's
+    # hybrid_twin_star template: gamma = (3.25, 4.0), joining pressure 10^33.5 Pa, transition at 10^33.85 Pa with
+    # a relative energy-density jump of 1.15 and a core sound speed squared of 0.999. Pressures below are cgs.
+    central_pressure_hybrid = (3.25, 33.5 + 1, 4.0, 33.85 + 1, 1.15, 0.999)
+
+    def test_hybrid_params_to_family_rejections(self):
+        """
+        Parameters lalsimulation refuses (transition below the joining pressure, a negative jump, a superluminal
+        core) give no family and a NaN rejection from the one-call function; an acausal EOS is rejected unless
+        the causality check is skipped.
+        """
+        g0, lp1, g1, lpt, deps, cs2 = self.central_pressure_hybrid
+        for bad in [(g0, lpt, g1, lp1, deps, cs2), (g0, lp1, g1, lpt, -0.5, cs2), (g0, lp1, g1, lpt, deps, 1.5)]:
+            self.assertIsNone(conversion.hybrid_params_to_family(*bad))
+            mass_1, mass_2, lambda_1, lambda_2, eos_check = \
+                conversion.hybrid_central_pressures_to_masses_and_lambdas(*bad, 34.0, 33.8)
+            self.assertFalse(eos_check)
+            self.assertTrue(np.isnan(mass_1) and np.isnan(mass_2))
+            self.assertEqual((lambda_1, lambda_2), (0.0, 0.0))
+        # a stiff second polytrope that the maximum-mass star reaches: acausal
+        acausal = (3.0, 34.0 + 1, 8.0, 35.0 + 1, 0.1, 0.5)
+        self.assertIsNone(conversion.hybrid_params_to_family(*acausal))
+        family = conversion.hybrid_params_to_family(*acausal, causality_check=False)
+        self.assertIsNotNone(family)
+        eos = conversion.lalsim_SimNeutronStarEOS6ParameterHybrid(3.0, 34.0, 8.0, 35.0, 0.1, 0.5)
+        self.assertFalse(conversion.eos_is_causal_at_maximum_mass_star(eos, family))
+
+    def test_hybrid_family_and_star_halves_reproduce_the_central_pressure_conversion(self):
+        """
+        hybrid_params_to_family followed by masses_and_lambdas_from_central_pressures gives the same stars as
+        the one-call function, and the rejections are reported the same way.
+        """
+        family = conversion.hybrid_params_to_family(*self.central_pressure_hybrid)
+        self.assertIsNotNone(family)
+        for log10_p1, log10_p2 in [(34.3611, 33.7254), (33.9, 33.2), (36.5, 33.5)]:
+            expected = conversion.hybrid_central_pressures_to_masses_and_lambdas(
+                *self.central_pressure_hybrid, log10_p1, log10_p2)
+            got = conversion.masses_and_lambdas_from_central_pressures(log10_p1, log10_p2, family)
+            self.assertEqual(expected[4], got[4])
+            if got[4]:
+                for e, g in zip(expected[:4], got[:4]):
+                    self.assertEqual(e, g)
+            else:
+                self.assertTrue(np.isnan(got[0]) and np.isnan(got[1]))
+                self.assertEqual(got[2:4], (0.0, 0.0))
+        self.assertFalse(conversion.hybrid_central_pressures_to_masses_and_lambdas(
+            *self.central_pressure_hybrid, 36.5, 33.5)[4])
+
+    def test_hybrid_twin_star_injection(self):
+        """
+        The twin-star injection comes out as eos_two_step builds it: two stable branches, star 1 (the larger
+        central pressure, 10^34.3611 Pa) of 1.450 Msun on the hybrid branch and star 2 (10^33.7254 Pa) of
+        1.285 Msun on the hadronic branch, so the heavier central pressure is the heavier star here, with
+        Lambda 200.2 and 1340.8.
+        """
+        family = conversion.hybrid_params_to_family(*self.central_pressure_hybrid)
+        self.assertEqual(conversion.lalsim_SimNeutronStarFamNumberOfBranches(family), 2)
+        log10_pc1, log10_pc2 = 34.3611, 33.7254
+        p_lo_1 = conversion.lalsim_SimNeutronStarFamMinCentralPressurePerBranch(family, 1)
+        self.assertGreater(10 ** log10_pc1, p_lo_1)
+        self.assertLess(10 ** log10_pc2, p_lo_1)
+        mass_1, mass_2, lambda_1, lambda_2, eos_check = \
+            conversion.hybrid_central_pressures_to_masses_and_lambdas(
+                *self.central_pressure_hybrid, log10_pc1, log10_pc2)
+        self.assertTrue(eos_check)
+        self.assertAlmostEqual(mass_1, 1.4500, delta=1e-3)
+        self.assertAlmostEqual(mass_2, 1.2851, delta=1e-3)
+        self.assertAlmostEqual(lambda_1 / 200.2, 1.0, delta=1e-2)
+        self.assertAlmostEqual(lambda_2 / 1340.8, 1.0, delta=1e-2)
+
+    def test_convert_to_lal_binary_neutron_star_parameters_hybrid_central_pressures(self):
+        '''
+        The full conversion keyed on eos_hybrid_gamma_0, with the sampled joining and transition pressures
+        (offset 33 in log10 dyn/cm^2) and the central pressures of the twin-star injection: scalar input returns
+        the injected stars; array input handles accepted and rejected samples together.
+        '''
+        base = dict(luminosity_distance=57.16, a_1=0.0, a_2=0.0, tilt_1=0.0, tilt_2=0.0, phi_12=0.0, phi_jl=0.0,
+                    theta_jn=0.4, phase=0.0, ra=1.0, dec=0.3, geocent_time=0.0, psi=0.0,
+                    eos_hybrid_gamma_0=3.25, eos_hybrid_gamma_1=4.0,
+                    eos_hybrid_scaled_pressure_t=1.85, eos_hybrid_scaled_pressure_ratio=1.5 / 1.85,
+                    eos_hybrid_energy_jump=1.15, eos_hybrid_cs2=0.999)
+        scale = 34.3611 - conversion.MINIMUM_CENTRAL_LOG10_PRESSURE_SI
+        ratio = (33.7254 - conversion.MINIMUM_CENTRAL_LOG10_PRESSURE_SI) / scale
+        out, added_keys = conversion.convert_to_lal_binary_neutron_star_parameters(
+            dict(base, ns_central_pressure_scale=scale, ns_central_pressure_ratio=ratio))
+        for key in ['mass_1', 'mass_2', 'mass_1_source', 'mass_2_source', 'lambda_1', 'lambda_2', 'redshift']:
+            self.assertIn(key, added_keys)
+        self.assertTrue(out['eos_check'])
+        self.assertAlmostEqual(out['mass_1_source'], 1.4500, delta=1e-3)
+        self.assertAlmostEqual(out['mass_2_source'], 1.2851, delta=1e-3)
+        self.assertAlmostEqual(out['mass_1'] / out['mass_1_source'], 1 + out['redshift'])
+        n = 3
+        arrays = {key: np.full(n, value) for key, value in base.items()}
+        arrays['ns_central_pressure_scale'] = np.array([scale, 3.2, 1.0])
+        arrays['ns_central_pressure_ratio'] = np.array([ratio, 0.9, 0.9])
+        out, _ = conversion.convert_to_lal_binary_neutron_star_parameters(arrays)
+        self.assertEqual(list(out['eos_check']), [True, False, True])
+        self.assertAlmostEqual(out['mass_1_source'][0], 1.4500, delta=1e-3)
+        self.assertTrue(np.isnan(out['mass_1'][1]))
+        self.assertEqual(out['lambda_1'][1], 0.0)
+
 
 if __name__ == "__main__":
     unittest.main()
